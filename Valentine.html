@@ -1,289 +1,86 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>Valentine Game</title>
-
-<style>
-
-body{
- margin:0;
- font-family:sans-serif;
- background:black;
- color:white;
- text-align:center;
-}
-
-/* ---------- GAME ---------- */
-
-#game-container{
- display:flex;
- flex-direction:column;
- align-items:center;
- justify-content:center;
- height:100vh;
-}
-
-canvas{
- background:#111;
-}
-
-button{
- padding:10px 20px;
- font-size:18px;
- margin-top:10px;
- cursor:pointer;
-}
-
-.card{
- display:none;
- flex-direction:column;
- align-items:center;
- justify-content:center;
- height:100vh;
-}
-
-#lockScreen{
- visibility:hidden;
- opacity:0;
- position:absolute;
- top:0;
- left:0;
- width:100%;
- height:100%;
- background:#000;
- display:flex;
- align-items:center;
- justify-content:center;
- flex-direction:column;
-}
-
-.webgl{
- position:fixed;
- top:0;
- left:0;
- outline:none;
-}
-
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Snake Game Valentine</title>
+    <style>
+        body { text-align: center; background: #222; color: white; font-family: 'Segoe UI', sans-serif; margin: 0; touch-action: manipulation; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
+        #game-container { display: flex; flex-direction: column; align-items: center; width: 100%; height: 100%; }
+        canvas { background: #000; border: 4px solid #ff4081; display: block; box-shadow: 0 0 20px rgba(255, 64, 129, 0.4); border-radius: 10px; }
+        .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 180px; margin-top: 10px; }
+        .btn-control { width: 55px; height: 55px; background: #444; border: 2px solid #666; color: white; border-radius: 12px; font-size: 20px; cursor: pointer; }
+        #start-btn { padding: 10px 30px; font-size: 20px; background: #f44336; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; font-weight: bold; }
+        #score { font-size: 24px; margin: 5px; color: #ff8fab; font-weight: bold; }
+        #valentine-container { display: none; justify-content: center; align-items: center; min-height: 100vh; background-color: #ffebee; position: fixed; top: 0; left: 0; width: 100%; z-index: 100; }
+        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; color: #333; }
+        #wish-page { display: none; }
+        .btn-val { margin-top: 20px; padding: 12px 30px; border: none; background: #e91e63; color: white; border-radius: 25px; cursor: pointer; font-size: 1.1rem; }
+        .photo-frame { width: 180px; height: 180px; border-radius: 50%; border: 6px solid #ffebee; margin: 15px auto; object-fit: cover; display: block; }
+        .bg-heart { position: absolute; color: rgba(233, 30, 99, 0.4); pointer-events: none; animation: fall linear forwards; top: -50px; z-index: 105; }
+        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
+    </style>
 </head>
-
 <body>
-
-<!-- ================= GAME ================= -->
-
-<div id="game-container">
-
-<h2>Snake Game ❤️</h2>
-
-<div id="score">Score: 0</div>
-
-<canvas id="game" width="400" height="400"></canvas>
-
-<button onclick="startGame()">Start</button>
-
-</div>
-
-
-<!-- ================= VALENTINE PAGE ================= -->
-
-<div class="card" id="valentine-container">
-
-<h1>Happy Valentine ❤️</h1>
-
-<p>เก่งมาก! เค้ามีไรจะบอก</p>
-
-<button onclick="showWish()">กดต่อ</button>
-
-</div>
-
-
-<!-- ================= VALENTINE 2026 ================= -->
-
-<div class="card" id="wish-page">
-
-<h1>Valentine 2026</h1>
-
-<p>เค้ารักเธอน๊าาาอยู่กับเค้าไปนานๆ</p>
-
-<button onclick="goToLock()">ต่อไป</button>
-
-</div>
-
-
-<!-- ================= LOCK SCREEN ================= -->
-
-<div id="lockScreen">
-
-<h2>ใส่รหัสเข้าโลก ❤️</h2>
-
-<input id="pinInput" type="password">
-
-<button onclick="checkPin()">ยืนยัน</button>
-
-</div>
-
-
-<!-- ================= 3D WORLD ================= -->
-
-<canvas class="webgl"></canvas>
-
-<div id="worldUI" style="display:none;position:absolute;top:20px;width:100%;">
-
-<h2>Welcome to Valentine World 🌌</h2>
-<p>ตรงนี้คุณใส่ gallery / รูป / three.js ได้เลย</p>
-
-</div>
-
-
-
-<audio id="song" loop>
-<source src="tiptoe.mp3" type="audio/mpeg">
-</audio>
-
-
-<script>
-
-/* ================= SNAKE GAME ================= */
-
-const canvas=document.getElementById('game');
-const ctx=canvas.getContext('2d');
-
-let snake=[{x:10,y:10}];
-let food={x:5,y:5};
-let dir="right";
-let score=0;
-let interval;
-
-function startGame(){
-
- snake=[{x:10,y:10}];
- score=0;
-
- clearInterval(interval);
-
- interval=setInterval(draw,120);
-}
-
-function draw(){
-
- let head={...snake[0]};
-
- if(dir==="right") head.x++;
- if(dir==="left") head.x--;
- if(dir==="up") head.y--;
- if(dir==="down") head.y++;
-
- if(head.x<0||head.x>19||head.y<0||head.y>19){
-   gameOver();
-   return;
- }
-
- snake.unshift(head);
-
- if(head.x===food.x&&head.y===food.y){
-
-   score+=10;
-   document.getElementById("score").innerText="Score: "+score;
-
-   food.x=Math.floor(Math.random()*20);
-   food.y=Math.floor(Math.random()*20);
-
- }else{
-   snake.pop();
- }
-
- ctx.fillStyle="black";
- ctx.fillRect(0,0,400,400);
-
- ctx.fillStyle="red";
- ctx.fillRect(food.x*20,food.y*20,20,20);
-
- ctx.fillStyle="lime";
- snake.forEach(p=>ctx.fillRect(p.x*20,p.y*20,18,18));
-}
-
-document.addEventListener("keydown",e=>{
-
- if(e.key==="ArrowUp")dir="up";
- if(e.key==="ArrowDown")dir="down";
- if(e.key==="ArrowLeft")dir="left";
- if(e.key==="ArrowRight")dir="right";
-});
-
-function gameOver(){
-
- clearInterval(interval);
-
- if(score>=300){
-
-   switchToValentine();
-
- }else{
-
-   alert("ต้องได้ 300 คะแนน!");
- }
-}
-
-
-/* ================= FLOW ================= */
-
-function switchToValentine(){
-
- document.getElementById("game-container").style.display="none";
-
- document.getElementById("valentine-container").style.display="flex";
-
- document.getElementById("song").play();
-}
-
-function showWish(){
-
- document.getElementById("valentine-container").style.display="none";
-
- document.getElementById("wish-page").style.display="flex";
-}
-
-function goToLock(){
-
- document.getElementById("wish-page").style.display="none";
-
- let lock=document.getElementById("lockScreen");
-
- lock.style.visibility="visible";
- lock.style.opacity="1";
-}
-
-function checkPin(){
-
- let pin=document.getElementById("pinInput").value;
-
- if(pin==="2255"){
-
-   document.getElementById("lockScreen").style.display="none";
-
-   document.getElementById("worldUI").style.display="block";
-
-   start3D();
-
- }else{
-
-   alert("รหัสผิด!");
- }
-}
-
-
-/* ================= THREE JS PLACEHOLDER ================= */
-
-function start3D(){
-
- console.log("เริ่มโลก 3D");
-
- // ใส่ three.js scene ของคุณตรงนี้ได้เลย
-
-}
-
-</script>
-
+    <audio id="mySong" loop><source src="tiptoe.mp3" type="audio/mpeg"></audio>
+    <div id="game-container">
+        <div id="score">Score: 0</div>
+        <canvas id="game"></canvas>
+        <button id="start-btn" onclick="startGame()">❤️ เริ่มเกม ❤️</button>
+        <div class="controls">
+            <div></div><button class="btn-control" onclick="handleBtn('up')">W</button><div></div>
+            <button class="btn-control" onclick="handleBtn('left')">A</button>
+            <button class="btn-control" onclick="handleBtn('down')">S</button>
+            <button class="btn-control" onclick="handleBtn('right')">D</button>
+        </div>
+    </div>
+    <div id="valentine-container">
+        <div class="card" id="main-page">
+            <div style="font-size: 60px;">❤️</div>
+            <h1>Happy Valentine</h1>
+            <p>เก่งมาก! เค้ามีไรจะบอก</p>
+            <button class="btn-val" onclick="showWish()">เธอกดตรงนี้</button>
+        </div>
+        <div class="card" id="wish-page">
+            <h1 style="color: #ff8fab;">Valentine 2026</h1>
+            <img src="Tong3.jpg" alt="Valentine" class="photo-frame">
+            <p style="font-weight: bold;">เค้ารักเธอน๊าาาอยู่กับเค้าไปนานๆ ขอบคุณที่อยู่ข้างกันตลอด จุ๊บๆๆๆ</p>
+            <button class="btn-val" style="background: #e91e63;" onclick="window.location.href='heart.html'">กดตรงนี้ไปต่อค้าบบบ</button>
+        </div>
+    </div>
+    <script>
+        const canvas = document.getElementById('game'); const ctx = canvas.getContext('2d'); const song = document.getElementById('mySong');
+        const tileCount = 20; let box, snake = [], food = {}, direction = 'right', nextDirection = 'right', score = 0, gameInterval, isGameRunning = false;
+        function resizeGame() { let size = Math.min(window.innerWidth - 20, window.innerHeight - 250); if (size < 280) size = 280; canvas.width = canvas.height = size; box = size / tileCount; }
+        window.addEventListener('resize', resizeGame); resizeGame();
+        function startGame() { 
+            resizeGame(); snake = [{x: 10, y: 10}]; direction = nextDirection = 'right'; score = 0; isGameRunning = true; 
+            document.getElementById('score').innerText = "Score: " + score; spawnFood();
+            if(gameInterval) clearInterval(gameInterval); gameInterval = setInterval(draw, 130);
+            document.getElementById('start-btn').innerText = "🔄 เริ่มใหม่";
+        }
+        function spawnFood() {
+            while (true) {
+                let newFood = { x: Math.floor(Math.random()*tileCount), y: Math.floor(Math.random()*tileCount) };
+                if (!snake.some(p => p.x === newFood.x && p.y === newFood.y)) { food = newFood; break; }
+            }
+        }
+        window.handleBtn = (dir) => { if (!isGameRunning) return; if(dir==='left'&&direction!=='right') nextDirection='left'; if(dir==='up'&&direction!=='down') nextDirection='up'; if(dir==='right'&&direction!=='left') nextDirection='right'; if(dir==='down'&&direction!=='up') nextDirection='down'; }
+        document.addEventListener('keydown', (e) => { const k = e.code; if(k==='KeyW'||k==='ArrowUp') handleBtn('up'); if(k==='KeyS'||k==='ArrowDown') handleBtn('down'); if(k==='KeyA'||k==='ArrowLeft') handleBtn('left'); if(k==='KeyD'||k==='ArrowRight') handleBtn('right'); });
+        function draw() {
+            direction = nextDirection; let head = {x: snake[0].x, y: snake[0].y};
+            if(direction === 'left') head.x--; if(direction === 'up') head.y--; if(direction === 'right') head.x++; if(direction === 'down') head.y++;
+            if(head.x<0||head.x>=tileCount||head.y<0||head.y>=tileCount||snake.some(p=>p.x===head.x&&p.y===head.y)) { gameOver(); return; }
+            snake.unshift(head);
+            if(head.x === food.x && head.y === food.y) { score += 10; document.getElementById('score').innerText = "Score: " + score; spawnFood(); } else { snake.pop(); }
+            ctx.fillStyle = "black"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = "#ff4081"; ctx.beginPath(); ctx.arc(food.x*box+box/2, food.y*box+box/2, box/2-2, 0, Math.PI*2); ctx.fill();
+            snake.forEach((p,i) => { ctx.fillStyle = i===0 ? "#00E676" : "#4CAF50"; ctx.fillRect(p.x*box+1, p.y*box+1, box-2, box-2); });
+        }
+        function gameOver() { isGameRunning = false; clearInterval(gameInterval); if (score >= 300) { switchToValentine(); } else { alert("GameOver! คะแนน: " + score + "\nเอาให้ถึง 300 นะเตง"); startGame(); } }
+        function switchToValentine() { document.getElementById('game-container').style.display='none'; document.getElementById('valentine-container').style.display='flex'; song.play(); setInterval(createHeart, 300); }
+        function showWish() { document.getElementById('main-page').style.display='none'; document.getElementById('wish-page').style.display='block'; }
+        function createHeart() { const h = document.createElement('div'); h.classList.add('bg-heart'); h.innerHTML = '❤️'; h.style.left = Math.random()*100+'vw'; const d = Math.random()*3+2; h.style.animationDuration = d+'s'; document.body.appendChild(h); setTimeout(()=>h.remove(), d*1000); }
+    </script>
 </body>
 </html>
