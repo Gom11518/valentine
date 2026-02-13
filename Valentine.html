@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Valentine 2026 - Final Pink Version</title>
+    <title>งูพิษพิชิตใจเธอ 🐍</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Parisienne&family=Sarabun:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -14,17 +14,29 @@
         /* --- 1. Snake Game --- */
         #game-section { background: #222; }
         canvas#snakeGame { background: #000; border: 4px solid #ff4081; border-radius: 10px; }
+        #game-title { font-size: 2rem; color: #e91e63; margin-bottom: 5px; text-shadow: 0 0 10px rgba(233, 30, 99, 0.5); }
         #score { font-size: 24px; margin: 10px; color: #ff8fab; font-weight: bold; }
         .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
         .btn-control { width: 55px; height: 55px; background: #444; color: white; border-radius: 12px; font-size: 20px; }
         #start-btn { padding: 10px 30px; font-size: 20px; background: #f44336; color: white; border: none; border-radius: 50px; cursor: pointer; }
 
         /* --- 2. Message Cards --- */
-        #message-section { background-color: #ffebee; z-index: 50; }
-        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; color: #333; display: none; }
+        #message-section { background-color: #ffebee; z-index: 50; position: relative; overflow: hidden; }
+        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; color: #333; display: none; z-index: 60; position: relative; }
         .card.active { display: block; }
         .photo-frame { width: 180px; height: 180px; border-radius: 50%; border: 6px solid #ffc1e3; margin: 15px auto; object-fit: cover; display: block; }
         .btn-val { margin-top: 20px; padding: 12px 30px; border: none; background: #e91e63; color: white; border-radius: 25px; cursor: pointer; font-size: 1.1rem; font-weight: bold; }
+
+        /* CSS สำหรับหัวใจตก */
+        .falling-heart {
+            position: fixed;
+            top: -10vh;
+            user-select: none;
+            pointer-events: none;
+            z-index: 55;
+            animation: fall linear forwards;
+        }
+        @keyframes fall { to { transform: translateY(110vh) rotate(360deg); } }
 
         /* --- 3. Lock Screen (2D Background) --- */
         #lock-section { z-index: 100; }
@@ -46,12 +58,11 @@
         .content-overlay { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 210; text-align: center; }
         .message-container { position: fixed; bottom: 30px; left: 30px; text-align: left; height: 30px; }
         
-        /* แก้ไขสีหัวข้อ I Love You เป็นสีชมพู */
         .main-title {
             font-family: 'Parisienne', cursive;
             font-size: clamp(2rem, 8vw, 4.5rem);
             margin-top: 20px;
-            color: #ff1493; /* สีชมพูเข้ม */
+            color: #ff1493;
             text-shadow: 2px 2px 4px rgba(255, 20, 147, 0.5);
         }
 
@@ -66,7 +77,10 @@
 <body>
     <audio id="mySong" loop><source src="tiptoe.mp3" type="audio/mpeg"></audio>
 
+    <canvas id="canvas2d"></canvas>
+
     <div id="game-section" class="section active">
+        <h1 id="game-title">งูพิษพิชิตใจเธอ 🐍</h1>
         <div id="score">Score: 0</div>
         <canvas id="snakeGame"></canvas>
         <button id="start-btn" onclick="initSnake()">❤️ เริ่มเกม ❤️</button>
@@ -96,10 +110,9 @@
     </div>
 
     <div id="lock-section" class="section">
-        <canvas id="canvas2d"></canvas>
         <div id="floatingTextContainer"></div>
         <div id="pin-ui">
-            <div style="font-size: 24px; color: #ffccff; margin-bottom: 25px; font-weight: bold;">คำใบ้ : เวลารัก</div>
+            <div style="font-size: 24px; color: #ffccff; margin-bottom: 25px; font-weight: bold;">คำใบ้ : ต้องทำทุกวัน</div>
             <div style="display: flex; margin-bottom: 30px;" id="dots-container">
                 <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
             </div>
@@ -125,7 +138,7 @@
         import * as THREE from 'https://cdn.skypack.dev/three@0.135.0';
         import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.135.0/examples/jsm/loaders/GLTFLoader';
 
-        let currentPin = "", score = 0, sRunning = false, sInterval;
+        let currentPin = "", score = 0, sRunning = false, sInterval, heartInterval;
         const correctPin = "2255", song = document.getElementById('mySong');
 
         // --- SNAKE GAME ---
@@ -158,7 +171,12 @@
             if(sDir=='left') head.x--; if(sDir=='up') head.y--; if(sDir=='right') head.x++; if(sDir=='down') head.y++;
             if(head.x<0||head.x>=tileCount||head.y<0||head.y>=tileCount||snake.some(p=>p.x==head.x&&p.y==head.y)) {
                 clearInterval(sInterval); sRunning = false;
-                if(score>=300) { document.getElementById('game-section').classList.remove('active'); document.getElementById('message-section').classList.add('active'); song.play(); }
+                if(score>=300) { 
+                    document.getElementById('game-section').classList.remove('active'); 
+                    document.getElementById('message-section').classList.add('active'); 
+                    song.play(); 
+                    startFallingHearts(); 
+                }
                 else { alert("GameOver! คะแนน: "+score+"\nเอาให้ถึง 300 นะเตง!"); document.getElementById('start-btn').style.display='block'; }
                 return;
             }
@@ -168,9 +186,37 @@
             snake.forEach((p,i)=>{ sCtx.fillStyle=i==0?"#00E676":"#4CAF50"; sCtx.fillRect(p.x*box+1,p.y*box+1,box-2,box-2); });
         }
 
+        // --- FALLING HEARTS ---
+        function startFallingHearts() {
+            heartInterval = setInterval(() => {
+                const heart = document.createElement('div');
+                heart.classList.add('falling-heart');
+                heart.innerHTML = '❤️';
+                const r = Math.random();
+                heart.style.color = r > 0.7 ? '#e91e63' : (r > 0.4 ? '#ff4081' : '#ff80ab');
+                heart.style.left = Math.random() * 100 + 'vw';
+                heart.style.fontSize = Math.random() * 20 + 15 + 'px';
+                heart.style.animationDuration = Math.random() * 2 + 3 + 's'; 
+                document.body.appendChild(heart);
+                setTimeout(() => heart.remove(), 5000);
+            }, 300);
+        }
+
+        function stopFallingHearts() {
+            clearInterval(heartInterval);
+            document.querySelectorAll('.falling-heart').forEach(h => h.remove());
+        }
+
         // --- TRANSITIONS ---
         window.showNextCard = () => { document.getElementById('card1').classList.remove('active'); document.getElementById('card2').classList.add('active'); };
-        window.proceedToLock = () => { document.getElementById('message-section').classList.remove('active'); document.getElementById('lock-section').classList.add('active'); start2DBackground(); };
+        
+        window.proceedToLock = () => { 
+            stopFallingHearts(); 
+            document.getElementById('message-section').classList.remove('active'); 
+            document.getElementById('lock-section').classList.add('active'); 
+            start2DBackground(); 
+        };
+        
         window.enter3DWorld = () => { document.getElementById('lock-section').classList.remove('active'); document.getElementById('webgl-section').classList.add('active'); new Final3D(); startFinalMessages(); };
 
         // --- 2D BACKGROUND (LOCK SCREEN) ---
@@ -190,10 +236,10 @@
             reset() {
                 this.x = Math.random() * window.innerWidth * 1.5 - window.innerWidth * 0.2; 
                 this.y = Math.random() * -window.innerHeight;
-                this.speed = Math.random() * 0.7 + 0.3; 
+                this.speed = Math.random() * 0.7 + 0.3;
                 this.len = Math.random() * 60 + 30;
                 this.opacity = Math.random() * 0.5 + 0.3;
-                const colors = ['255, 255, 255', '255, 182, 193', '135, 206, 250']; 
+                const colors = ['255, 255, 255', '255, 182, 193', '135, 206, 250'];
                 this.color = colors[Math.floor(Math.random() * colors.length)];
             }
             draw() {
@@ -250,7 +296,6 @@
                 this.renderer.setSize(window.innerWidth, window.innerHeight); this.camera.position.z = 5;
                 this.group = new THREE.Group(); this.scene.add(this.group);
                 
-                // สร้าง Texture รูปวงกลมสำหรับเม็ดบีด
                 this.circleTexture = new THREE.TextureLoader().load('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=');
 
                 this.addStars();
@@ -264,7 +309,6 @@
                 });
                 new GLTFLoader().load('https://assets.codepen.io/74321/heart.glb', g=>{
                     this.heart = g.scene; 
-                    // ขยายขนาดหัวใจให้ใหญ่ขึ้น 3 เท่า (จาก 0.5 เป็น 1.5)
                     this.heart.scale.set(1.5, 1.5, 1.5);
                     this.heart.traverse(n=>{if(n.isMesh)n.material=new THREE.MeshBasicMaterial({color:0xff3366, wireframe:true});});
                     this.scene.add(this.heart);
@@ -273,7 +317,6 @@
                     let t = Date.now()*0.001; this.group.rotation.y = t*0.15;
                     this.starGeo.attributes.position.array.forEach((v,i) => { if(i%3===2) { this.starGeo.attributes.position.array[i]+=0.02; if(this.starGeo.attributes.position.array[i]>5) this.starGeo.attributes.position.array[i]=-15; } });
                     this.starGeo.attributes.position.needsUpdate = true;
-                    // อัปเดตการเต้นของหัวใจให้สัมพันธ์กับขนาดใหม่
                     if(this.heart) { this.heart.rotation.y = t*0.8; this.heart.scale.setScalar(1.5 + Math.sin(t*3)*0.1); }
                     this.renderer.render(this.scene, this.camera); requestAnimationFrame(animate);
                 }; animate();
@@ -282,11 +325,10 @@
                 this.starGeo = new THREE.BufferGeometry(); const pos = [];
                 for(let i=0; i<3000; i++) pos.push((Math.random()-0.5)*30, (Math.random()-0.5)*30, (Math.random()-0.5)*30);
                 this.starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-                // ใช้ Texture วงกลม และเปลี่ยนสีเป็นชมพู
                 this.scene.add(new THREE.Points(this.starGeo, new THREE.PointsMaterial({
-                    color: 0xff69b4, // สีชมพู
-                    size: 0.2,        // ขนาดใหญ่ขึ้น
-                    map: this.circleTexture, // รูปทรงวงกลม
+                    color: 0xff69b4, 
+                    size: 0.2,        
+                    map: this.circleTexture, 
                     transparent: true,
                     alphaTest: 0.5
                 })));
