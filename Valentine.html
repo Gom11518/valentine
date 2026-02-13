@@ -5,43 +5,111 @@
   <title>I Love You - 3D Valentine</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Parisienne&family=Sarabun:wght@300&display=swap');
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { overflow: hidden; background: #050205; color: #ffccff; font-family: 'Sarabun', sans-serif; }
-    canvas { position: fixed; top: 0; left: 0; outline: none; }
+    @import url('https://fonts.googleapis.com/css2?family=Parisienne&family=Sarabun:wght@300;600&display=swap');
     
-    .content-overlay { 
-      position: absolute; 
-      width: 100%; 
-      height: 100%; 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      justify-content: space-between; 
-      padding: 8vh 2rem 12vh 2rem; 
-      z-index: 10; 
-      pointer-events: none; 
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body { 
+      overflow: hidden; 
+      background: #050205; 
+      color: #ffccff; 
+      font-family: 'Sarabun', sans-serif; 
     }
 
-    h1 { 
-      font-family: 'Parisienne', cursive; 
-      font-size: clamp(2.5rem, 8vw, 5rem); 
-      text-shadow: 0 0 25px rgba(255, 102, 204, 0.9); 
-      animation: glow 2s ease-in-out infinite alternate; 
-      margin-bottom: auto;
+    canvas { position: fixed; top: 0; left: 0; outline: none; }
+
+    /* ปรับ Layout ให้ยืดหยุ่น */
+    .content-overlay {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      pointer-events: none; /* เพื่อให้คลิกทะลุไปหมุนโมเดลได้ */
+      z-index: 10;
     }
 
-    .dedication { text-align: center; background: rgba(255, 192, 203, 0.1); padding: 1.2rem 2.5rem; border-radius: 50px; backdrop-filter: blur(8px); border: 1px solid rgba(255, 192, 203, 0.3); }
-    @keyframes glow { from { text-shadow: 0 0 20px rgba(255, 102, 204, 0.8); } to { text-shadow: 0 0 35px rgba(255, 102, 204, 1), 0 0 10px #fff; } }
+    /* 1. ปรับหัวข้อ I Love You ให้เล็กลงและอยู่บนสุด */
+    h1 {
+      position: absolute;
+      top: 5%; /* ขยับขึ้นไปข้างบน */
+      width: 100%;
+      text-align: center;
+      font-family: 'Parisienne', cursive;
+      font-size: clamp(2rem, 6vw, 4rem); /* เล็กลงอีกนิด */
+      text-shadow: 0 0 20px rgba(255, 102, 204, 0.9);
+      animation: glow 2s ease-in-out infinite alternate;
+      margin: 0;
+    }
+
+    /* 2. ย้ายกล่องข้อความมาทางซ้าย + ทำเอฟเฟกต์เลื่อน */
+    .dedication-container {
+      position: absolute;
+      left: 5%;  /* ชิดซ้าย */
+      top: 50%;
+      transform: translateY(-50%); /* จัดกึ่งกลางแนวตั้ง */
+      width: 280px;
+      height: 160px; /* ความสูงของกล่องข้อความ */
+      
+      background: rgba(255, 192, 203, 0.15);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 192, 203, 0.4);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 0 30px rgba(255, 105, 180, 0.2);
+      
+      overflow: hidden; /* ซ่อนข้อความส่วนที่ล้นกรอบ */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+
+    /* ตัวห่อหุ้มข้อความที่จะเลื่อน */
+    .scrolling-content {
+      /* คำนวณอนิเมชั่น: 11 ประโยค + ช่องว่าง */
+      animation: scrollUp 15s linear infinite; 
+    }
+
+    .scrolling-content p {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #fff0f5;
+      margin: 15px 0; /* ระยะห่างระหว่างประโยค */
+      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    /* คีย์เฟรมสำหรับเลื่อนข้อความขึ้น */
+    @keyframes scrollUp {
+      0% { transform: translateY(100%); } /* เริ่มจากข้างล่างกล่อง */
+      100% { transform: translateY(-120%); } /* เลื่อนขึ้นไปจนพ้นกล่อง */
+    }
+
+    @keyframes glow { 
+      from { text-shadow: 0 0 15px rgba(255, 102, 204, 0.8); } 
+      to { text-shadow: 0 0 25px rgba(255, 102, 204, 1), 0 0 5px #fff; } 
+    }
   </style>
 </head>
 <body>
+
   <canvas class="webgl"></canvas>
+
   <div class="content-overlay">
     <h1>I Love You</h1>
-    <div class="dedication">
-      <p>ขอบคุณที่เป็นความสุขให้กันเสมอมานะครับ</p>
-      <p style="font-size: 0.9rem; margin-top: 5px; color: #ff99cc;">รักนะจุ๊บๆ ❤️</p>
+    
+    <div class="dedication-container">
+      <div class="scrolling-content">
+        <p>รักเธอนะจุ๊บๆ🩷🐰🐻</p>
+        <p>อยากกอดจังง</p>
+        <p>ตัวเล็กของเค้า</p>
+        <p>คิดถึงตลอดเวลาเลย</p>
+        <p>น่ารักที่สุดในโลกแล้ว</p>
+        <p>ยิ้มเยอะๆนะตัวเล็ก</p>
+        <p>มาอ้อนหน่อย</p>
+        <p>ง้ำๆ</p>
+        <p>รักๆๆๆ</p>
+        <p>กินเค้าาา</p>
+        <p>อยู่ในใจตลอด</p>
+        <p>รักเธอนะจุ๊บๆ🩷🐰🐻</p>
+      </div>
     </div>
   </div>
 
@@ -55,13 +123,17 @@
         this.scene = new THREE.Scene();
         this.textureLoader = new THREE.TextureLoader();
         this.clock = new THREE.Clock();
+        
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera.position.z = 5;
+        
         this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
         this.photoGroup = new THREE.Group();
         this.scene.add(this.photoGroup);
+
         this.init();
       }
 
@@ -70,6 +142,7 @@
         this.addPhotoRing();
         await this.loadMainHeart(); 
         this.animate();
+        
         window.addEventListener('resize', () => this.onResize());
       }
 
@@ -78,17 +151,32 @@
         const count = 4000;
         const pos = new Float32Array(count * 3);
         const velocities = new Float32Array(count);
-        for(let i=0; i<count*3; i++) pos[i] = (Math.random() - 0.5) * 25;
-        for(let i=0; i<count; i++) velocities[i] = Math.random() * 0.03 + 0.01;
+
+        for(let i=0; i<count*3; i++) {
+          pos[i] = (Math.random() - 0.5) * 25;
+        }
+        for(let i=0; i<count; i++) {
+          velocities[i] = Math.random() * 0.03 + 0.01;
+        }
+
         geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
         this.starVelocities = velocities;
         this.starGeo = geo;
-        const mat = new THREE.PointsMaterial({ size: 0.03, color: 0xffccff, transparent: true, opacity: 0.8 });
+
+        const mat = new THREE.PointsMaterial({ 
+          size: 0.03, 
+          color: 0xffccff, 
+          transparent: true, 
+          opacity: 0.8,
+          blending: THREE.AdditiveBlending 
+        });
+        
         this.stars = new THREE.Points(geo, mat);
         this.scene.add(this.stars);
       }
 
       addPhotoRing() {
+        // รายชื่อรูปภาพ (Tong1 - Tong11)
         const photos = [
           'Tong1.jpg', 'Tong2.jpg', 'Tong3.jpg', 'Tong4.jpg', 
           'Tong5.jpg', 'Tong6.jpg', 'Tong7.jpg', 'Tong8.jpg', 
@@ -98,23 +186,16 @@
         const radius = 3.2;
         photos.forEach((url, i) => {
           this.textureLoader.load(url, (tex) => {
-            // ใช้ DoubleSide เพื่อให้เห็นทั้งหน้าและหลัง
             const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
             const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.9), mat);
+            
             const angle = (i / photos.length) * Math.PI * 2;
-            
             mesh.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
-            
-            // หันหน้าเข้าจุดกึ่งกลาง
             mesh.lookAt(0, 0, 0);
-            
-            // --- แก้ไขตรงนี้: หมุนกลับหลังหัน 180 องศา (Math.PI) ---
-            mesh.rotateY(Math.PI); 
+            mesh.rotateY(Math.PI); // แก้รูปกลับด้าน
             
             this.photoGroup.add(mesh);
-          }, undefined, (err) => {
-              console.error("Error loading image:", url);
-          });
+          }, undefined, (err) => { console.error("Error loading:", url); });
         });
       }
 
@@ -122,27 +203,31 @@
         const loader = new GLTFLoader();
         loader.load('https://assets.codepen.io/74321/heart.glb', (gltf) => {
           this.heart = gltf.scene;
-          this.heart.scale.set(0.5, 0.5, 0.5);
-          this.heart.traverse(n => { if(n.isMesh) n.material = new THREE.MeshBasicMaterial({ color: 0xff3366, wireframe: true }); });
+          this.heart.scale.set(0.5, 0.5, 0.5); // ขนาดหัวใจ
+          this.heart.traverse(n => {
+            if(n.isMesh) n.material = new THREE.MeshBasicMaterial({ color: 0xff3366, wireframe: true });
+          });
           this.scene.add(this.heart);
         });
       }
 
       animate() {
         const elapsed = this.clock.getElapsedTime();
+        
+        // ขยับดาว
         const positions = this.starGeo.attributes.position.array;
         for(let i=0; i<this.starVelocities.length; i++) {
             positions[i*3 + 2] += this.starVelocities[i];
             if(positions[i*3 + 2] > 5) positions[i*3 + 2] = -15;
         }
         this.starGeo.attributes.position.needsUpdate = true;
+
         if(this.photoGroup) this.photoGroup.rotation.y = elapsed * 0.15;
-        
-        if(this.heart) { 
-            this.heart.rotation.y = elapsed * 0.5; 
-            this.heart.scale.setScalar(0.5 + Math.sin(elapsed * 2) * 0.03); 
+        if(this.heart) {
+          this.heart.rotation.y = elapsed * 0.5;
+          this.heart.scale.setScalar(0.5 + Math.sin(elapsed * 2) * 0.03);
         }
-        
+
         this.renderer.render(this.scene, this.camera);
         requestAnimationFrame(() => this.animate());
       }
@@ -153,6 +238,7 @@
         this.renderer.setSize(window.innerWidth, window.innerHeight);
       }
     }
+
     new ValentineWorld();
   </script>
 </body>
