@@ -134,7 +134,7 @@
         const correctPin = "2255";
         const song = document.getElementById('mySong');
 
-        // --- 1. SNAKE GAME LOGIC ---
+        // --- 1. SNAKE GAME LOGIC (WITH FOOD SPAWN FIX) ---
         const sCanvas = document.getElementById('snakeGame');
         const sCtx = sCanvas.getContext('2d');
         const tileCount = 20; let box = 20;
@@ -151,9 +151,25 @@
             document.getElementById('start-btn').style.display = 'none';
         };
 
-        function spawnFood() { food = { x: Math.floor(Math.random()*tileCount), y: Math.floor(Math.random()*tileCount) }; }
+        // FIXED: ฟังก์ชันสุ่มอาหารแบบไม่ทับตัวงู
+        function spawnFood() {
+            let onSnake;
+            do {
+                onSnake = false;
+                food = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+                // ตรวจสอบว่าตำแหน่งอาหารใหม่ทับส่วนใดส่วนหนึ่งของงูหรือไม่
+                for (let part of snake) {
+                    if (part.x === food.x && part.y === food.y) {
+                        onSnake = true;
+                        break;
+                    }
+                }
+            } while (onSnake); // ถ้าทับ ให้สุ่มใหม่จนกว่าจะได้ที่ว่าง
+        }
 
-        // ฟังก์ชันเปลี่ยนทิศทางแบบ Global
         window.changeSnakeDir = (d) => { 
             if(!sRunning) return;
             if(d=='up' && sDir!='down') sNextDir='up'; 
@@ -162,7 +178,7 @@
             if(d=='right' && sDir!='left') sNextDir='right'; 
         };
 
-        // เพิ่ม Keyboard Listener
+        // รองรับคีย์บอร์ด
         document.addEventListener('keydown', (e) => {
             if(!sRunning) return;
             const key = e.key.toLowerCase();
@@ -170,10 +186,7 @@
             if (key === 's' || key === 'arrowdown') window.changeSnakeDir('down');
             if (key === 'a' || key === 'arrowleft') window.changeSnakeDir('left');
             if (key === 'd' || key === 'arrowright') window.changeSnakeDir('right');
-            
-            if(['w','s','a','d','arrowup','arrowdown','arrowleft','arrowright'].includes(key)) {
-                e.preventDefault();
-            }
+            if(['w','s','a','d','arrowup','arrowdown','arrowleft','arrowright'].includes(key)) e.preventDefault();
         });
 
         function drawSnake() {
@@ -201,14 +214,21 @@
             snake.forEach((p,i)=>{ sCtx.fillStyle=i==0?"#00E676":"#4CAF50"; sCtx.fillRect(p.x*box+1,p.y*box+1,box-2,box-2); });
         }
 
-        // --- 2. MESSAGE TO LOCK TRANSITION ---
+        // --- 2. TRANSITIONS ---
         window.proceedToLock = function() {
             document.getElementById('message-section').style.display = 'none';
             document.getElementById('lock-section').style.display = 'block';
             start2DHeart();
         };
 
-        // --- 3. LOCK SCREEN & 2D HEART ---
+        window.enter3DWorld = function() {
+            document.getElementById('lock-section').style.display='none';
+            document.getElementById('webgl-section').style.display='block';
+            new Final3D();
+            startFinalMessages();
+        };
+
+        // --- 3. LOCK LOGIC & 2D BACKGROUND ---
         const c2d = document.getElementById('canvas2d');
         const ctx2d = c2d.getContext('2d');
         let parts2d = [], t2d = 0;
@@ -254,14 +274,7 @@
             }, 800);
         }
 
-        // --- 4. FINAL 3D WORLD ---
-        window.enter3DWorld = function() {
-            document.getElementById('lock-section').style.display='none';
-            document.getElementById('webgl-section').style.display='block';
-            new Final3D();
-            startFinalMessages();
-        };
-
+        // --- 4. 3D WORLD ---
         class Final3D {
             constructor() {
                 this.scene = new THREE.Scene();
