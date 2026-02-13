@@ -2,141 +2,381 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>I Love You - 3D Valentine</title>
+  <title>Valentine Full Experience</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Parisienne&family=Sarabun:wght@300;600&display=swap');
-    
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body { 
-      overflow: hidden; 
-      background: #050205; 
-      color: #ffccff; 
-      font-family: 'Sarabun', sans-serif; 
+    @import url('https://fonts.googleapis.com/css2?family=Parisienne&family=Sarabun:wght@300;600;700&display=swap');
+
+    body {
+      margin: 0;
+      overflow: hidden;
+      background-color: #050205;
+      font-family: 'Sarabun', sans-serif;
+      user-select: none;
     }
 
-    canvas { position: fixed; top: 0; left: 0; outline: none; }
-
-    .content-overlay {
+    /* =========================================
+       SECTION 1: Lock Screen & 2D Background
+       ========================================= */
+    
+    /* Canvas สำหรับ Particle Heart (หน้าแรก) */
+    #canvas2d {
+      display: block;
       position: absolute;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 10;
+      top: 0;
+      left: 0;
+      z-index: 1;
+      transition: opacity 1.5s ease; /* เฟดออกสวยๆ */
     }
+
+    /* ข้อความลอยฟุ้งๆ */
+    #floatingTextContainer {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 5;
+      overflow: hidden;
+      transition: opacity 1s ease;
+    }
+    .floating-text {
+      position: absolute;
+      color: rgba(255, 255, 255, 0.8);
+      font-size: 0.85rem;
+      font-weight: 300;
+      white-space: nowrap;
+      opacity: 0;
+      text-shadow: 0 0 5px rgba(255, 105, 180, 0.5);
+      animation: floatMoveFade linear forwards;
+    }
+    @keyframes floatMoveFade {
+      0% { opacity: 0; transform: translate(var(--startX), var(--startY)) scale(0.8); }
+      20% { opacity: 1; }
+      80% { opacity: 1; }
+      100% { opacity: 0; transform: translate(var(--endX), var(--endY)) scale(1); }
+    }
+
+    /* หน้าจอล็อก */
+    #lockScreen {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.3);
+      backdrop-filter: blur(3px);
+      transition: opacity 0.5s ease, visibility 0.5s;
+    }
+    .hint-text {
+      font-size: 24px; color: #ffccff; margin-bottom: 25px;
+      text-shadow: 0 0 10px rgba(255, 105, 180, 0.8);
+      font-weight: bold; letter-spacing: 1px;
+    }
+    .pin-display { display: flex; gap: 15px; margin-bottom: 30px; }
+    .pin-dot { width: 15px; height: 15px; border-radius: 50%; background: rgba(255, 255, 255, 0.3); border: 2px solid white; transition: all 0.2s; }
+    .pin-dot.filled { background: white; box-shadow: 0 0 10px white; }
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+    .key { width: 70px; height: 70px; border-radius: 15px; background: rgba(60, 60, 80, 0.8); color: white; font-size: 28px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.2); box-shadow: 0 4px 15px rgba(0,0,0,0.3); transition: transform 0.1s, background 0.2s; }
+    .key:active { transform: scale(0.95); background: rgba(255, 255, 255, 0.2); }
+    .key.clear { background: #e74c3c; }
+    .key.enter { background: #2ecc71; }
+    @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } 100% { transform: translateX(0); } }
+    .shake { animation: shake 0.3s ease-in-out; }
+
+    /* ปุ่มกดไปหน้าถัดไป */
+    #secretContainer {
+      position: absolute; bottom: 80px; left: 0; width: 100%;
+      display: flex; justify-content: center;
+      z-index: 50; opacity: 0; pointer-events: none;
+      transition: opacity 1s ease;
+    }
+    #secretContainer.show { pointer-events: auto; }
+    #enterBtn {
+      padding: 8px 25px; font-size: 0.9rem;
+      font-family: 'Sarabun', sans-serif; font-weight: bold;
+      color: white; background: rgba(255, 105, 180, 0.6);
+      border: 1.5px solid rgba(255, 255, 255, 0.4); border-radius: 30px;
+      cursor: pointer; backdrop-filter: blur(5px);
+      box-shadow: 0 2px 10px rgba(255, 105, 180, 0.3);
+      transition: all 0.3s ease; outline: none;
+    }
+    #enterBtn:hover { background: rgba(255, 105, 180, 0.9); transform: scale(1.05); box-shadow: 0 4px 15px rgba(255, 105, 180, 0.5); }
+
+
+    /* =========================================
+       SECTION 2: 3D Valentine World
+       ========================================= */
+    
+    /* Canvas สำหรับ Three.js (หน้าสอง) */
+    .webgl {
+      position: fixed; top: 0; left: 0; outline: none;
+      z-index: 2; /* อยู่เหนือ Canvas 2D เมื่อแสดงผล */
+      opacity: 0; /* ซ่อนไว้ก่อน */
+      pointer-events: none; /* ห้ามกดถ้ายังไม่โชว์ */
+      transition: opacity 2s ease;
+    }
+    .webgl.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Overlay เนื้อหา 3D */
+    .content-overlay {
+      position: absolute; width: 100%; height: 100%;
+      pointer-events: none; z-index: 20;
+      opacity: 0; transition: opacity 2s ease 1s; /* ดีเลย์นิดนึง */
+    }
+    .content-overlay.active { opacity: 1; }
 
     h1 {
-      position: absolute;
-      top: 5%;
-      width: 100%;
-      text-align: center;
+      position: absolute; top: 5%; width: 100%; text-align: center;
       font-family: 'Parisienne', cursive;
       font-size: clamp(2rem, 6vw, 4rem);
       text-shadow: 0 0 20px rgba(255, 102, 204, 0.9);
       animation: glow 2s ease-in-out infinite alternate;
-      margin: 0;
+      margin: 0; color: #ffccff;
     }
 
-    /* กล่องข้อความล่างซ้าย (ไร้กรอบ) */
+    /* กล่องข้อความด้านล่างซ้าย */
     .message-container {
-      position: fixed;
-      bottom: 30px;
-      left: 30px;
-      width: auto;
-      height: auto;
-      z-index: 20;
-      text-align: left;
-      background: transparent !important;
-      border: none !important;
-      box-shadow: none !important;
+      position: fixed; bottom: 30px; left: 30px;
+      z-index: 25; text-align: left;
     }
-
     .message-text {
-      font-size: 1.5rem;
-      font-weight: 600;
-      color: #fff;
+      font-size: 1.5rem; font-weight: 600; color: #fff;
       text-shadow: 0 0 10px rgba(255, 105, 180, 0.8);
-      opacity: 0;
-      /* ปรับเวลา Fade ให้สมูทขึ้นเป็น 2 วินาที */
-      transition: opacity 2s ease-in-out;
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      white-space: nowrap;
+      opacity: 0; transition: opacity 2s ease-in-out;
+      position: absolute; bottom: 0; left: 0; white-space: nowrap;
     }
+    .message-text.visible { opacity: 1; }
 
-    .message-text.visible {
-      opacity: 1;
-    }
+    @keyframes glow { from { text-shadow: 0 0 15px rgba(255, 102, 204, 0.8); } to { text-shadow: 0 0 25px rgba(255, 102, 204, 1), 0 0 5px #fff; } }
 
-    @keyframes glow { 
-      from { text-shadow: 0 0 15px rgba(255, 102, 204, 0.8); } 
-      to { text-shadow: 0 0 25px rgba(255, 102, 204, 1), 0 0 5px #fff; } 
-    }
   </style>
 </head>
 <body>
 
-  <canvas class="webgl"></canvas>
+  <canvas id="canvas2d"></canvas>
+  <div id="floatingTextContainer"></div>
+  
+  <div id="lockScreen">
+    <div class="hint-text">คำใบ้ : เวลารัก</div>
+    <div class="pin-display" id="pinDisplay"><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div></div>
+    <div class="keypad">
+      <div class="key" onclick="press(1)">1</div><div class="key" onclick="press(2)">2</div><div class="key" onclick="press(3)">3</div>
+      <div class="key" onclick="press(4)">4</div><div class="key" onclick="press(5)">5</div><div class="key" onclick="press(6)">6</div>
+      <div class="key" onclick="press(7)">7</div><div class="key" onclick="press(8)">8</div><div class="key" onclick="press(9)">9</div>
+      <div class="key clear" onclick="clearPin()">✕</div><div class="key" onclick="press(0)">0</div><div class="key enter" onclick="checkPin()">✓</div>
+    </div>
+  </div>
 
+  <div id="secretContainer">
+      <button id="enterBtn" onclick="enterValentineWorld()">กดตรงนี้ค้าบบบ</button>
+  </div>
+
+  <canvas class="webgl"></canvas>
   <div class="content-overlay">
     <h1>I Love You</h1>
     <div class="message-container" id="msgContainer"></div>
   </div>
 
+
   <script type="module">
     import * as THREE from 'https://cdn.skypack.dev/three@0.135.0';
     import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.135.0/examples/jsm/loaders/GLTFLoader';
 
-    // --- ส่วนจัดการข้อความ ---
-    const messages = [
-      "รักเธอนะจุ๊บๆ",
-      "อยากกอดจังง",
-      "ตัวเล็กของเค้า",
-      "คิดถึงตลอดเวลาเลย",
-      "น่ารักที่สุดในโลกแล้ว",
-      "ยิ้มเยอะๆนะตัวเล็ก",
-      "มาอ้อนหน่อย",
-      "ง้ำๆ",
-      "รักๆๆๆ",
-      "กินเค้าาา",
-      "อยู่ในใจตลอด"
-    ];
+    // ==========================================
+    // LOGIC PART 1: Lock Screen & 2D Heart
+    // ==========================================
+    
+    // ตั้งค่า Global ให้ HTML เรียกใช้ได้
+    window.currentPin = "";
+    window.correctPin = "2255"; 
 
-    const container = document.getElementById('msgContainer');
-    let currentIndex = 0;
-
-    function showNextMessage() {
-      container.innerHTML = '';
-      const p = document.createElement('p');
-      p.className = 'message-text';
-      p.innerText = messages[currentIndex];
-      container.appendChild(p);
-
-      // เริ่ม Fade In
-      setTimeout(() => {
-        p.classList.add('visible');
-      }, 100);
-
-      // *** แก้ไขเวลาตรงนี้ ***
-      // 5000ms = 5 วินาที (รวมเวลา Fade In 2 วิ + โชว์เต็มๆ 3 วิ)
-      setTimeout(() => {
-        p.classList.remove('visible'); // เริ่ม Fade Out
-        
-        // รอให้จางหายไปจนหมด (2 วินาที) แล้วค่อยเปลี่ยนประโยค
-        setTimeout(() => {
-          currentIndex = (currentIndex + 1) % messages.length;
-          showNextMessage();
-        }, 2000);
-        
-      }, 5000); 
+    window.press = function(num) {
+      if (window.currentPin.length < 4) {
+        window.currentPin += num;
+        updateDisplay();
+      }
     }
 
-    showNextMessage();
+    window.clearPin = function() {
+      window.currentPin = "";
+      updateDisplay();
+    }
+
+    window.checkPin = function() {
+      if (window.currentPin === window.correctPin) {
+        // รหัสถูก -> ซ่อนหน้าล็อก -> โชว์ปุ่ม
+        document.getElementById('lockScreen').style.opacity = '0';
+        document.getElementById('lockScreen').style.visibility = 'hidden';
+        
+        const secretBtn = document.getElementById('secretContainer');
+        secretBtn.style.opacity = '1';
+        secretBtn.classList.add('show');
+      } else {
+        // รหัสผิด
+        const pinDisplay = document.getElementById('pinDisplay');
+        pinDisplay.classList.add('shake');
+        setTimeout(() => {
+          pinDisplay.classList.remove('shake');
+          window.currentPin = "";
+          updateDisplay();
+        }, 300);
+      }
+    }
+
+    function updateDisplay() {
+      const dots = document.querySelectorAll('.pin-dot');
+      dots.forEach((dot, index) => {
+        if (index < window.currentPin.length) dot.classList.add('filled');
+        else dot.classList.remove('filled');
+      });
+    }
+
+    // ฟังก์ชันเปลี่ยนโลก! (จาก 2D เป็น 3D)
+    window.enterValentineWorld = function() {
+        // 1. ซ่อน UI หน้าแรก
+        document.getElementById('secretContainer').style.opacity = '0';
+        document.getElementById('secretContainer').classList.remove('show');
+        document.getElementById('floatingTextContainer').style.opacity = '0';
+        
+        // 2. ซ่อน Canvas 2D
+        const canvas2d = document.getElementById('canvas2d');
+        canvas2d.style.opacity = '0';
+        setTimeout(() => { canvas2d.style.display = 'none'; }, 1500);
+
+        // 3. แสดงผลหน้า 3D
+        document.querySelector('.webgl').classList.add('active');
+        document.querySelector('.content-overlay').classList.add('active');
+
+        // 4. เริ่มรันระบบ 3D และข้อความ
+        new ValentineWorld();
+        startMessageLoop();
+    }
+
+    // --- Logic ข้อความลอย (Floating Text) ---
+    const textContainer = document.getElementById('floatingTextContainer');
+    setInterval(() => {
+      const textEl = document.createElement('div');
+      textEl.className = 'floating-text';
+      textEl.innerText = 'รักตองนะจุ๊บๆ';
+      
+      const startX = Math.random() * window.innerWidth + 'px';
+      const startY = Math.random() * window.innerHeight + 'px';
+      const endX = (Math.random() * window.innerWidth) + 'px';
+      const endY = (Math.random() * window.innerHeight) + 'px';
+
+      textEl.style.setProperty('--startX', startX);
+      textEl.style.setProperty('--startY', startY);
+      textEl.style.setProperty('--endX', endX);
+      textEl.style.setProperty('--endY', endY);
+
+      const duration = 15 + Math.random() * 10 + 's';
+      textEl.style.animationDuration = duration;
+      textContainer.appendChild(textEl);
+      setTimeout(() => textEl.remove(), parseFloat(duration) * 1000);
+    }, 800);
+
+    // --- Logic Canvas 2D (Particle Heart) ---
+    const cvs2d = document.getElementById('canvas2d');
+    const ctx2d = cvs2d.getContext('2d');
+    let w2d, h2d;
+    const p2d = [], s2d = [];
+    const FL = 400, Z_OFF = 200;
+
+    function resize2d() { w2d = cvs2d.width = window.innerWidth; h2d = cvs2d.height = window.innerHeight; }
+    window.addEventListener('resize', resize2d);
+    resize2d();
+
+    function hFunc(t, s=11) {
+       let x = 16*Math.pow(Math.sin(t),3);
+       let y = -(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t));
+       return {x:x*s, y:y*s};
+    }
+
+    class Star2D {
+       constructor(){this.reset();}
+       reset(){ this.x=Math.random()*w2d*1.5; this.y=Math.random()*-h2d; this.spd=Math.random()*2+1; this.len=Math.random()*80+50; this.op=Math.random(); }
+       draw(){
+          ctx2d.beginPath();
+          const g=ctx2d.createLinearGradient(this.x,this.y,this.x+this.len,this.y-this.len);
+          g.addColorStop(0,"rgba(255,255,255,"+this.op+")"); g.addColorStop(1,"rgba(255,255,255,0)");
+          ctx2d.strokeStyle=g; ctx2d.lineWidth=1.5; ctx2d.moveTo(this.x,this.y); ctx2d.lineTo(this.x+this.len,this.y-this.len); ctx2d.stroke();
+       }
+       update(){ this.x-=this.spd; this.y+=this.spd; if(this.y>h2d+100||this.x<-100)this.reset(); this.draw(); }
+    }
+
+    class Part2D {
+       constructor(x,y,z,sz,c){ this.bx=x; this.by=y; this.bz=z; this.x=x; this.y=y; this.bsz=sz; this.sz=sz; this.c=c; }
+       draw(){ if(this.sz<0.1)return; ctx2d.fillStyle=this.c; ctx2d.beginPath(); ctx2d.arc(this.x,this.y,this.sz,0,Math.PI*2); ctx2d.fill(); }
+       update(t){
+          const b = 1+Math.sin(t*3)*0.05;
+          let cx=this.bx*b, cy=this.by*b, cz=this.bz*b;
+          const a=t*0.8;
+          let rx=cx*Math.cos(a)-cz*Math.sin(a), rz=cx*Math.sin(a)+cz*Math.cos(a);
+          const sc=FL/(FL+rz+Z_OFF);
+          this.x=w2d/2+rx*sc; this.y=h2d/2+cy*sc; this.sz=this.bsz*sc; this.draw();
+       }
+    }
+
+    // Init 2D
+    const randZ = ()=>(Math.random()-0.5)*30;
+    for(let i=0;i<Math.PI*2;i+=0.01){ const p=hFunc(i,15); p2d.push(new Part2D(p.x,p.y,randZ()*0.5,1.5,'#ea80b0')); }
+    for(let i=0;i<1500;i++){ const t=Math.random()*Math.PI*2; const p=hFunc(t,15); const l=Math.sqrt(Math.random())*0.95; p2d.push(new Part2D(p.x*l,p.y*l,randZ(),Math.random()*1.5,'#ea80b0')); }
+    for(let i=0;i<1000;i++){ const t=Math.random()*Math.PI*2; const p=hFunc(t,15); const x=p.x+(Math.random()-0.5)*10, y=p.y+(Math.random()-0.5)*10; p2d.push(new Part2D(x,y,randZ()*1.5,Math.random()*1,'#ff99cc')); }
+    for(let i=0;i<15;i++) s2d.push(new Star2D());
+
+    let t2d=0;
+    function anim2d(){
+       // ถ้า Canvas ถูกซ่อนแล้ว ไม่ต้องรันต่อ (เพื่อประหยัดเครื่อง)
+       if(cvs2d.style.display === 'none') return;
+
+       ctx2d.fillStyle='rgba(5,2,5,0.2)'; ctx2d.fillRect(0,0,w2d,h2d);
+       t2d+=0.015;
+       s2d.forEach(s=>s.update());
+       p2d.sort((a,b)=>b.bz-a.bz);
+       p2d.forEach(p=>p.update(t2d));
+       requestAnimationFrame(anim2d);
+    }
+    anim2d(); // Start 2D loop immediately
 
 
-    // --- ส่วน 3D (เหมือนเดิม) ---
+    // ==========================================
+    // LOGIC PART 2: 3D Valentine World
+    // ==========================================
+    
+    // ฟังก์ชันเริ่มข้อความรัก (จะถูกเรียกเมื่อเข้าสู่โลก 3D)
+    function startMessageLoop() {
+        const messages = [
+            "รักเธอนะจุ๊บๆ", "อยากกอดจังง", "ตัวเล็กของเค้า", "คิดถึงตลอดเวลาเลย",
+            "น่ารักที่สุดในโลกแล้ว", "ยิ้มเยอะๆนะตัวเล็ก", "มาอ้อนหน่อย",
+            "ง้ำๆ", "รักๆๆๆ", "กินเค้าาา", "อยู่ในใจตลอด"
+        ];
+        const container = document.getElementById('msgContainer');
+        let idx = 0;
+
+        function showNext() {
+            container.innerHTML = '';
+            const p = document.createElement('p');
+            p.className = 'message-text';
+            p.innerText = messages[idx];
+            container.appendChild(p);
+
+            setTimeout(() => p.classList.add('visible'), 100);
+            setTimeout(() => {
+                p.classList.remove('visible');
+                setTimeout(() => {
+                    idx = (idx + 1) % messages.length;
+                    showNext();
+                }, 2000);
+            }, 5000);
+        }
+        showNext();
+    }
+
+    // Class 3D World (Three.js)
     class ValentineWorld {
       constructor() {
         this.canvas = document.querySelector('.webgl');
@@ -145,7 +385,7 @@
         this.clock = new THREE.Clock();
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera.position.z = 5;
-        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
+        this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true, alpha: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         this.photoGroup = new THREE.Group();
@@ -222,7 +462,6 @@
         this.renderer.setSize(window.innerWidth, window.innerHeight);
       }
     }
-    new ValentineWorld();
   </script>
 </body>
 </html>
