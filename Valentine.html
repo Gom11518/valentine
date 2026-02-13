@@ -3,103 +3,83 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Valentine 2026 - Our Journey</title>
+    <title>Valentine 2026 - Final Version</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Parisienne&family=Sarabun:wght@300;400;600;700&display=swap');
-
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { 
-            background: #050205; 
-            color: white; 
-            font-family: 'Sarabun', sans-serif; 
-            overflow: hidden;
-            touch-action: manipulation; /* ป้องกันการซูมในมือถือ */
-        }
-
-        /* --- Common Utility --- */
+        body { background: #050205; color: white; font-family: 'Sarabun', sans-serif; overflow: hidden; touch-action: manipulation; }
         .section { display: none; width: 100%; height: 100vh; position: fixed; top: 0; left: 0; }
         .section.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-        /* --- 1. Snake Game Styles --- */
-        #game-section { background: #222; text-align: center; z-index: 10; }
-        canvas#snakeGame { background: #000; border: 4px solid #ff4081; border-radius: 10px; box-shadow: 0 0 20px rgba(255, 64, 129, 0.4); }
+        /* --- 1. Snake Game --- */
+        #game-section { background: #222; }
+        canvas#snakeGame { background: #000; border: 4px solid #ff4081; border-radius: 10px; }
         #score { font-size: 24px; margin: 10px; color: #ff8fab; font-weight: bold; }
-        .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 180px; margin-top: 10px; }
-        .btn-control { width: 55px; height: 55px; background: #444; border: 2px solid #666; color: white; border-radius: 12px; font-size: 20px; cursor: pointer; user-select: none; }
-        .btn-control:active { background: #ff4081; }
-        #start-btn { padding: 10px 30px; font-size: 20px; background: #f44336; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; font-weight: bold; }
+        .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+        .btn-control { width: 55px; height: 55px; background: #444; color: white; border-radius: 12px; font-size: 20px; }
+        #start-btn { padding: 10px 30px; font-size: 20px; background: #f44336; color: white; border: none; border-radius: 50px; cursor: pointer; }
 
-        /* --- 2. Message Styles --- */
+        /* --- 2. Message Cards --- */
         #message-section { background-color: #ffebee; z-index: 50; }
-        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; color: #333; animation: fadeIn 0.5s ease; }
+        .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; color: #333; display: none; }
+        .card.active { display: block; }
         .photo-frame { width: 180px; height: 180px; border-radius: 50%; border: 6px solid #ffc1e3; margin: 15px auto; object-fit: cover; display: block; }
-        .btn-val { margin-top: 20px; padding: 12px 30px; border: none; background: #e91e63; color: white; border-radius: 25px; cursor: pointer; font-size: 1.1rem; font-weight: bold; transition: transform 0.2s; }
-        .btn-val:active { transform: scale(0.95); }
+        .btn-val { margin-top: 20px; padding: 12px 30px; border: none; background: #e91e63; color: white; border-radius: 25px; cursor: pointer; font-size: 1.1rem; font-weight: bold; }
 
-        /* --- 3. Lock Screen Styles --- */
-        #lock-section { z-index: 100; background: transparent; }
+        /* --- 3. Lock Screen (2D Background) --- */
+        #lock-section { z-index: 100; }
         #canvas2d { position: absolute; top: 0; left: 0; z-index: 1; }
         #floatingTextContainer { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: hidden; }
         .floating-text { position: absolute; color: rgba(255, 255, 255, 0.8); font-size: 0.85rem; opacity: 0; animation: floatMoveFade linear forwards; }
         @keyframes floatMoveFade { 0% { opacity: 0; transform: translate(var(--startX), var(--startY)); } 20%, 80% { opacity: 1; } 100% { opacity: 0; transform: translate(var(--endX), var(--endY)); } }
-        
-        #pin-ui { position: relative; z-index: 110; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px); width: 100%; }
+        #pin-ui { position: relative; z-index: 110; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(3px); width: 100%; }
         .pin-dot { width: 15px; height: 15px; border-radius: 50%; background: rgba(255,255,255,0.3); border: 2px solid white; margin: 0 7px; transition: 0.2s; }
         .pin-dot.filled { background: white; box-shadow: 0 0 10px white; }
         .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 30px; }
-        .key { width: 70px; height: 70px; border-radius: 15px; background: rgba(60,60,80,0.8); color: white; font-size: 28px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); transition: 0.1s; }
-        .key:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
-        
+        .key { width: 70px; height: 70px; border-radius: 15px; background: rgba(60,60,80,0.8); color: white; font-size: 28px; font-weight: bold; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255,255,255,0.2); }
         #final-btn-container { position: absolute; bottom: 80px; width: 100%; display: none; justify-content: center; z-index: 120; }
-        .btn-small { padding: 12px 30px; font-size: 1rem; background: rgba(255,105,180,0.9); color: white; border: none; border-radius: 30px; cursor: pointer; box-shadow: 0 0 15px rgba(255,105,180,0.6); }
+        .btn-small { padding: 8px 25px; font-size: 0.9rem; background: rgba(255,105,180,0.8); color: white; border: none; border-radius: 30px; cursor: pointer; }
 
-        /* --- 4. Final 3D Styles --- */
+        /* --- 4. Final 3D --- */
         #webgl-section { z-index: 200; background: #050205; }
         .webgl-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .content-overlay { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 210; text-align: center; }
-        .message-container { position: fixed; bottom: 30px; left: 30px; text-align: left; }
+        .message-container { position: fixed; bottom: 30px; left: 30px; text-align: left; height: 30px; }
         .message-text { font-size: 1.5rem; font-weight: 600; color: #fff; text-shadow: 0 0 10px #ff4081; opacity: 0; transition: 2s; position: absolute; bottom: 0; white-space: nowrap; }
         .message-text.visible { opacity: 1; }
 
-        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.1); } 100% { transform: scale(1); } }
-        @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-10px); } 50% { transform: translateX(10px); } 75% { transform: translateX(-10px); } 100% { transform: translateX(0); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
         .shake { animation: shake 0.3s ease-in-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25%, 75% { transform: translateX(-10px); } 50% { transform: translateX(10px); } }
     </style>
 </head>
 <body>
-
     <audio id="mySong" loop><source src="tiptoe.mp3" type="audio/mpeg"></audio>
 
     <div id="game-section" class="section active">
         <div id="score">Score: 0</div>
         <canvas id="snakeGame"></canvas>
         <button id="start-btn" onclick="initSnake()">❤️ เริ่มเกม ❤️</button>
-        <p style="color: #888; font-size: 0.9rem; margin-top: 5px;">(เล่นให้ถึง 300 คะแนนนะ!)</p>
         <div class="controls">
-            <div></div>
-            <button class="btn-control" ontouchstart="window.changeSnakeDir('up')" onclick="window.changeSnakeDir('up')">W</button>
-            <div></div>
-            <button class="btn-control" ontouchstart="window.changeSnakeDir('left')" onclick="window.changeSnakeDir('left')">A</button>
-            <button class="btn-control" ontouchstart="window.changeSnakeDir('down')" onclick="window.changeSnakeDir('down')">S</button>
-            <button class="btn-control" ontouchstart="window.changeSnakeDir('right')" onclick="window.changeSnakeDir('right')">D</button>
+            <div></div><button class="btn-control" onclick="window.changeSnakeDir('up')">W</button><div></div>
+            <button class="btn-control" onclick="window.changeSnakeDir('left')">A</button>
+            <button class="btn-control" onclick="window.changeSnakeDir('down')">S</button>
+            <button class="btn-control" onclick="window.changeSnakeDir('right')">D</button>
         </div>
     </div>
 
     <div id="message-section" class="section">
-        <div class="card" id="first-card">
+        <div class="card active" id="card1">
             <div style="font-size: 60px; animation: pulse 1.5s infinite;">❤️</div>
             <h1 style="color: #d32f2f;">Happy Valentine</h1>
             <p style="color: #555;">เก่งมาก! เค้ามีไรจะบอก</p>
-            <button class="btn-val" onclick="showPhotoCard()">เธอกดตรงนี้</button>
+            <button class="btn-val" onclick="showNextCard()">เธอกดตรงนี้</button>
         </div>
-
-        <div class="card" id="photo-card" style="display: none;">
-            <h1 style="color: #ff8fab; margin-bottom: 10px;">Valentine 2026</h1>
-            <img src="Tong3.jpg" alt="Valentine" class="photo-frame">
-            <p style="font-weight: bold; font-size: 0.9rem; color: #333; margin-top: 15px; line-height: 1.6;">
-                เค้ารักเธอน๊าาาอยู่กับเค้าไปนานๆ <br>ขอบคุณที่อยู่ข้างกันตลอด<br>
-                มีความสุขกับเค้าในทุกๆวันเลยนะ <br>จุ๊บๆๆๆๆๆๆๆๆๆๆ
+        <div class="card" id="card2">
+            <h1 style="color: #ff8fab; font-size: 1.8rem; margin-bottom: 10px;">Valentine 2026</h1>
+            <img src="627621846_3871409263167771_8747962275182716152_n.jpg" alt="Valentine" class="photo-frame">
+            <p style="font-weight: bold; font-size: 0.9rem; color: #333; margin-top: 5px; line-height: 1.4;">
+                เค้ารักเธอน๊าาาอยู่กับเค้าไปนานๆ ขอบคุณที่อยู่ข้างกันตลอด<br>มีความสุขกับเค้าในทุกๆวันเลยนะ
             </p>
             <button class="btn-val" onclick="proceedToLock()">กดตรงนี้ไปต่อค้าบบบ</button>
         </div>
@@ -109,7 +89,7 @@
         <canvas id="canvas2d"></canvas>
         <div id="floatingTextContainer"></div>
         <div id="pin-ui">
-            <div style="font-size: 24px; color: #ffccff; margin-bottom: 25px; font-weight: bold; text-shadow: 0 0 10px #ff69b4;">คำใบ้ : เวลารัก</div>
+            <div style="font-size: 24px; color: #ffccff; margin-bottom: 25px; font-weight: bold;">คำใบ้ : เวลารัก</div>
             <div style="display: flex; margin-bottom: 30px;" id="dots-container">
                 <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
             </div>
@@ -120,15 +100,13 @@
                 <div class="key" style="background:#e74c3c" onclick="clearPin()">✕</div><div class="key" onclick="pressPin(0)">0</div><div class="key" style="background:#2ecc71" onclick="checkPin()">✓</div>
             </div>
         </div>
-        <div id="final-btn-container">
-            <button class="btn-small" onclick="enter3DWorld()">กดตรงนี้ค้าบบบ</button>
-        </div>
+        <div id="final-btn-container"><button class="btn-small" onclick="enter3DWorld()">กดตรงนี้ค้าบบบ</button></div>
     </div>
 
     <div id="webgl-section" class="section">
         <canvas class="webgl-canvas"></canvas>
         <div class="content-overlay">
-            <h1 style="font-family: 'Parisienne', cursive; font-size: clamp(3rem, 8vw, 5rem); margin-top: 30px; text-shadow: 0 0 20px #ff4081;">I Love You</h1>
+            <h1 style="font-family: 'Parisienne', cursive; font-size: clamp(2rem, 8vw, 4.5rem); margin-top: 20px;">I Love You</h1>
             <div class="message-container" id="msgLoop"></div>
         </div>
     </div>
@@ -137,178 +115,90 @@
         import * as THREE from 'https://cdn.skypack.dev/three@0.135.0';
         import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.135.0/examples/jsm/loaders/GLTFLoader';
 
-        // --- GLOBAL VARIABLES ---
-        let currentPin = "";
-        const correctPin = "2255";
-        const song = document.getElementById('mySong');
+        let currentPin = "", score = 0, sRunning = false, sInterval;
+        const correctPin = "2255", song = document.getElementById('mySong');
 
-        // =========================================
-        // PART 1: SNAKE GAME (FIXED & OPTIMIZED)
-        // =========================================
-        const sCanvas = document.getElementById('snakeGame');
-        const sCtx = sCanvas.getContext('2d');
-        const tileCount = 20; let box = 20;
-        let snake = [], food = {}, sDir = 'right', sNextDir = 'right', score = 0, sInterval, sRunning = false;
+        // --- SNAKE GAME ---
+        const sCanvas = document.getElementById('snakeGame'), sCtx = sCanvas.getContext('2d');
+        const tileCount = 20; let box, snake = [], food = {}, sDir = 'right', sNextDir = 'right';
 
         window.initSnake = function() {
-            // ปรับขนาด Canvas ให้เหมาะกับจอ
-            let size = Math.min(window.innerWidth - 40, 400);
-            sCanvas.width = sCanvas.height = size; box = size / tileCount;
-            
+            let size = Math.min(window.innerWidth - 40, 400); sCanvas.width = sCanvas.height = size; box = size/tileCount;
             snake = [{x: 10, y: 10}]; sDir = sNextDir = 'right'; score = 0; sRunning = true;
-            document.getElementById('score').innerText = "Score: 0";
-            spawnFood();
-            
-            if(sInterval) clearInterval(sInterval);
-            sInterval = setInterval(drawSnake, 130); // ความเร็วเกม
+            document.getElementById('score').innerText = "Score: 0"; spawnFood();
+            if(sInterval) clearInterval(sInterval); sInterval = setInterval(drawSnake, 130);
             document.getElementById('start-btn').style.display = 'none';
         };
 
-        // FIXED: สุ่มอาหารไม่ให้ทับตัวงู
         function spawnFood() {
-            let onSnake;
-            do {
-                onSnake = false;
-                food = {
-                    x: Math.floor(Math.random() * tileCount),
-                    y: Math.floor(Math.random() * tileCount)
-                };
-                for (let part of snake) {
-                    if (part.x === food.x && part.y === food.y) {
-                        onSnake = true;
-                        break;
-                    }
-                }
-            } while (onSnake);
+            let onSnake; do {
+                onSnake = false; food = { x: Math.floor(Math.random()*tileCount), y: Math.floor(Math.random()*tileCount) };
+                for(let p of snake) if(p.x===food.x && p.y===food.y) onSnake=true;
+            } while(onSnake);
         }
 
-        window.changeSnakeDir = (d) => { 
-            if(!sRunning) return;
-            if(d=='up' && sDir!='down') sNextDir='up'; 
-            if(d=='down' && sDir!='up') sNextDir='down'; 
-            if(d=='left' && sDir!='right') sNextDir='left'; 
-            if(d=='right' && sDir!='left') sNextDir='right'; 
-        };
-
-        // Keyboard Listener
+        window.changeSnakeDir = (d) => { if(!sRunning) return; if(d=='up'&&sDir!='down')sNextDir='up'; if(d=='down'&&sDir!='up')sNextDir='down'; if(d=='left'&&sDir!='right')sNextDir='left'; if(d=='right'&&sDir!='left')sNextDir='right'; };
         document.addEventListener('keydown', (e) => {
-            if(!sRunning) return;
-            const key = e.key.toLowerCase();
-            if (key === 'w' || key === 'arrowup') window.changeSnakeDir('up');
-            if (key === 's' || key === 'arrowdown') window.changeSnakeDir('down');
-            if (key === 'a' || key === 'arrowleft') window.changeSnakeDir('left');
-            if (key === 'd' || key === 'arrowright') window.changeSnakeDir('right');
-            if(['w','s','a','d','arrowup','arrowdown','arrowleft','arrowright'].includes(key)) e.preventDefault();
+            const key = e.key.toLowerCase(); if(['w','a','s','d','arrowup','arrowdown','arrowleft','arrowright'].includes(key)) e.preventDefault();
+            if(key==='w'||key==='arrowup') window.changeSnakeDir('up'); if(key==='s'||key==='arrowdown') window.changeSnakeDir('down'); if(key==='a'||key==='arrowleft') window.changeSnakeDir('left'); if(key==='d'||key==='arrowright') window.changeSnakeDir('right');
         });
 
         function drawSnake() {
             sDir = sNextDir; let head = {x: snake[0].x, y: snake[0].y};
             if(sDir=='left') head.x--; if(sDir=='up') head.y--; if(sDir=='right') head.x++; if(sDir=='down') head.y++;
-            
-            // Check Collision (Wall or Self)
             if(head.x<0||head.x>=tileCount||head.y<0||head.y>=tileCount||snake.some(p=>p.x==head.x&&p.y==head.y)) {
                 clearInterval(sInterval); sRunning = false;
-                if(score >= 300) { 
-                    // WIN Condition
-                    document.getElementById('game-section').classList.remove('active');
-                    document.getElementById('message-section').classList.add('active');
-                    song.play().catch(() => {}); // Play music
-                } else { 
-                    alert("GameOver! คะแนน: "+score+"\nอีกนิดเดียว! เอาให้ถึง 300 นะเตง!"); 
-                    document.getElementById('start-btn').style.display='inline-block';
-                    document.getElementById('start-btn').innerText = "🔄 ลองใหม่";
-                }
+                if(score>=300) { document.getElementById('game-section').classList.remove('active'); document.getElementById('message-section').classList.add('active'); song.play(); }
+                else { alert("GameOver! คะแนน: "+score+"\nเอาให้ถึง 300 นะเตง!"); document.getElementById('start-btn').style.display='block'; }
                 return;
             }
-            snake.unshift(head);
-            if(head.x==food.x && head.y==food.y) { 
-                score+=10; document.getElementById('score').innerText="Score: "+score; spawnFood(); 
-            } else { 
-                snake.pop(); 
-            }
-
-            // Draw Logic
+            snake.unshift(head); if(head.x==food.x && head.y==food.y) { score+=10; document.getElementById('score').innerText="Score: "+score; spawnFood(); } else snake.pop();
             sCtx.fillStyle = "black"; sCtx.fillRect(0,0,sCanvas.width,sCanvas.height);
             sCtx.fillStyle = "#ff4081"; sCtx.beginPath(); sCtx.arc(food.x*box+box/2, food.y*box+box/2, box/2-2, 0, 7); sCtx.fill();
-            snake.forEach((p,i)=>{ 
-                sCtx.fillStyle = i==0 ? "#00E676" : "#4CAF50"; 
-                sCtx.fillRect(p.x*box+1,p.y*box+1,box-2,box-2); 
-            });
+            snake.forEach((p,i)=>{ sCtx.fillStyle=i==0?"#00E676":"#4CAF50"; sCtx.fillRect(p.x*box+1,p.y*box+1,box-2,box-2); });
         }
 
-        // =========================================
-        // PART 2: MESSAGE CARD SWITCHING
-        // =========================================
-        window.showPhotoCard = function() {
-            document.getElementById('first-card').style.display = 'none';
-            document.getElementById('photo-card').style.display = 'block';
-        };
+        // --- TRANSITIONS ---
+        window.showNextCard = () => { document.getElementById('card1').classList.remove('active'); document.getElementById('card2').classList.add('active'); };
+        window.proceedToLock = () => { document.getElementById('message-section').classList.remove('active'); document.getElementById('lock-section').classList.add('active'); start2DBackground(); };
+        window.enter3DWorld = () => { document.getElementById('lock-section').classList.remove('active'); document.getElementById('webgl-section').classList.add('active'); new Final3D(); startFinalMessages(); };
 
-        window.proceedToLock = function() {
-            document.getElementById('message-section').classList.remove('active');
-            document.getElementById('lock-section').classList.add('active');
-            start2DHeart(); // เริ่ม Animation หน้าล็อก
-        };
-
-        // =========================================
-        // PART 3: LOCK SCREEN & 2D HEART
-        // =========================================
-        const c2d = document.getElementById('canvas2d');
-        const ctx2d = c2d.getContext('2d');
-        let parts2d = [], t2d = 0;
+        // --- 2D BACKGROUND (LOCK SCREEN) ---
+        const c2d = document.getElementById('canvas2d'), ctx2d = c2d.getContext('2d');
+        let parts2d = [], stars2d = [], t2d = 0;
 
         window.pressPin = (n) => { if(currentPin.length<4) { currentPin+=n; updatePinDots(); } };
         window.clearPin = () => { currentPin=""; updatePinDots(); };
-        function updatePinDots() {
-            const dots = document.querySelectorAll('.pin-dot');
-            dots.forEach((d,i)=> d.classList.toggle('filled', i<currentPin.length));
-        }
+        function updatePinDots() { const dots = document.querySelectorAll('.pin-dot'); dots.forEach((d,i)=> d.classList.toggle('filled', i<currentPin.length)); }
         window.checkPin = () => {
-            if(currentPin === correctPin) {
-                // รหัสถูก -> ซ่อนแป้นพิมพ์ -> โชว์ปุ่มไปต่อ
-                document.getElementById('pin-ui').style.display='none';
-                document.getElementById('final-btn-container').style.display='flex';
-            } else {
-                // รหัสผิด -> สั่น
-                document.getElementById('dots-container').classList.add('shake');
-                setTimeout(()=>{ 
-                    document.getElementById('dots-container').classList.remove('shake'); 
-                    window.clearPin(); 
-                }, 300);
-            }
+            if(currentPin === correctPin) { document.getElementById('pin-ui').style.display='none'; document.getElementById('final-btn-container').style.display='flex'; }
+            else { document.getElementById('dots-container').classList.add('shake'); setTimeout(()=>{ document.getElementById('dots-container').classList.remove('shake'); window.clearPin(); }, 300); }
         };
 
-        window.enter3DWorld = function() {
-            document.getElementById('lock-section').classList.remove('active');
-            document.getElementById('webgl-section').classList.add('active');
-            new Final3D(); // เริ่ม 3D World
-            startFinalMessages();
-        };
+        class Star2D {
+            constructor() { this.reset(); }
+            reset() { this.x = Math.random()*c2d.width; this.y = Math.random()*-c2d.height; this.spd = Math.random()*2+1; this.len = Math.random()*80+50; }
+            update() { this.x -= this.spd; this.y += this.spd; if(this.y > c2d.height) this.reset(); }
+            draw() { ctx2d.strokeStyle = 'white'; ctx2d.beginPath(); ctx2d.moveTo(this.x, this.y); ctx2d.lineTo(this.x+this.len, this.y-this.len); ctx2d.stroke(); }
+        }
 
-        function start2DHeart() {
+        function start2DBackground() {
             c2d.width = window.innerWidth; c2d.height = window.innerHeight;
-            // สร้างเม็ดละอองหัวใจ
+            for(let i=0; i<15; i++) stars2d.push(new Star2D());
             const hF = (t,s=15) => ({ x: 16*Math.pow(Math.sin(t),3)*s, y: -(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))*s });
-            for(let i=0; i<Math.PI*2; i+=0.02) { let p=hF(i); parts2d.push({bx:p.x, by:p.y, bz:(Math.random()-0.5)*30, sz:1.5}); }
-            
-            function anim2d(){
-                // ถ้าหน้า Lock ปิดไปแล้ว ไม่ต้องวาดต่อ
-                if(!document.getElementById('lock-section').classList.contains('active')) return;
-
-                ctx2d.fillStyle='rgba(5,2,5,0.2)'; ctx2d.fillRect(0,0,c2d.width,c2d.height);
-                t2d+=0.015; let beat = 1+Math.sin(t2d*3)*0.05;
+            for(let i=0; i<Math.PI*2; i+=0.02) { let p=hF(i); parts2d.push({bx:p.x, by:p.y, bz:(Math.random()-0.5)*30}); }
+            function anim(){
+                ctx2d.fillStyle='rgba(5,2,5,0.2)'; ctx2d.fillRect(0,0,c2d.width,c2d.height); t2d+=0.015;
+                stars2d.forEach(s => { s.update(); s.draw(); });
+                let beat = 1+Math.sin(t2d*3)*0.05;
                 parts2d.forEach(p=>{
                     let ang=t2d*0.8; let rx=(p.bx*beat)*Math.cos(ang)-(p.bz*beat)*Math.sin(ang);
                     let sc=400/(400+(p.bx*beat)*Math.sin(ang)+(p.bz*beat)*Math.cos(ang)+200);
-                    ctx2d.fillStyle='#ea80b0'; ctx2d.beginPath(); ctx2d.arc(c2d.width/2+rx*sc, c2d.height/2+(p.by*beat)*sc, p.sz*sc, 0, 7); ctx2d.fill();
+                    ctx2d.fillStyle='#ea80b0'; ctx2d.beginPath(); ctx2d.arc(c2d.width/2+rx*sc, c2d.height/2+(p.by*beat)*sc, 1.5*sc, 0, 7); ctx2d.fill();
                 });
-                requestAnimationFrame(anim2d);
-            }
-            anim2d();
-
-            // Floating Text Loop
+                requestAnimationFrame(anim);
+            } anim();
             setInterval(() => {
-                if(!document.getElementById('lock-section').classList.contains('active')) return;
                 const el = document.createElement('div'); el.className='floating-text'; el.innerText='รักตองนะจุ๊บๆ';
                 el.style.setProperty('--startX', Math.random()*100+'vw'); el.style.setProperty('--startY', Math.random()*100+'vh');
                 el.style.setProperty('--endX', Math.random()*100+'vw'); el.style.setProperty('--endY', Math.random()*100+'vh');
@@ -318,56 +208,40 @@
             }, 800);
         }
 
-        // =========================================
-        // PART 4: FINAL 3D WORLD
-        // =========================================
+        // --- 3D WORLD ---
         class Final3D {
             constructor() {
-                this.scene = new THREE.Scene();
-                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+                this.scene = new THREE.Scene(); this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
                 this.renderer = new THREE.WebGLRenderer({canvas: document.querySelector('.webgl-canvas'), antialias:true, alpha:true});
-                this.renderer.setSize(window.innerWidth, window.innerHeight);
-                this.camera.position.z = 5;
+                this.renderer.setSize(window.innerWidth, window.innerHeight); this.camera.position.z = 5;
                 this.group = new THREE.Group(); this.scene.add(this.group);
-                
-                // Load Images
+                this.addStars();
                 const loader = new THREE.TextureLoader();
-                const files = ['Tong1.jpg','Tong2.jpg','Tong3.jpg','Tong4.jpg','Tong5.jpg','Tong6.jpg','Tong7.jpg','Tong8.jpg','Tong9.jpg','Tong10.jpg','Tong11.jpg'];
-                files.forEach((url,i)=>{
+                ['Tong1.jpg','Tong2.jpg','Tong3.jpg','Tong4.jpg','Tong5.jpg','Tong6.jpg','Tong7.jpg','Tong8.jpg','Tong9.jpg','Tong10.jpg','Tong11.jpg'].forEach((url,i)=>{
                     loader.load(url, t=>{
                         const m = new THREE.Mesh(new THREE.PlaneGeometry(0.9,0.9), new THREE.MeshBasicMaterial({map:t, side:2}));
-                        let a = (i/files.length)*Math.PI*2; 
-                        m.position.set(Math.cos(a)*3.2, 0, Math.sin(a)*3.2);
-                        m.lookAt(0,0,0); m.rotateY(Math.PI); 
-                        this.group.add(m);
+                        let a = (i/11)*Math.PI*2; m.position.set(Math.cos(a)*3.2, 0, Math.sin(a)*3.2);
+                        m.lookAt(0,0,0); m.rotateY(Math.PI); this.group.add(m);
                     });
                 });
-
-                // Load Heart Model
                 new GLTFLoader().load('https://assets.codepen.io/74321/heart.glb', g=>{
                     this.heart = g.scene; this.heart.scale.set(0.5,0.5,0.5);
                     this.heart.traverse(n=>{if(n.isMesh)n.material=new THREE.MeshBasicMaterial({color:0xff3366, wireframe:true});});
                     this.scene.add(this.heart);
                 });
-
-                // Background Stars
-                const starsGeo = new THREE.BufferGeometry();
-                const starsCnt = 2000;
-                const starsPos = new Float32Array(starsCnt*3);
-                for(let i=0;i<starsCnt*3;i++) starsPos[i]=(Math.random()-0.5)*30;
-                starsGeo.setAttribute('position', new THREE.BufferAttribute(starsPos,3));
-                this.scene.add(new THREE.Points(starsGeo, new THREE.PointsMaterial({color:0xffffff, size:0.05})));
-
                 const animate = () => {
-                    let t = Date.now()*0.001;
-                    this.group.rotation.y = t*0.15;
-                    if(this.heart) { 
-                        this.heart.rotation.y = t*0.8; 
-                        this.heart.scale.setScalar(0.5+Math.sin(t*3)*0.05); 
-                    }
-                    this.renderer.render(this.scene, this.camera);
-                    requestAnimationFrame(animate);
+                    let t = Date.now()*0.001; this.group.rotation.y = t*0.15;
+                    this.starGeo.attributes.position.array.forEach((v,i) => { if(i%3===2) { this.starGeo.attributes.position.array[i]+=0.02; if(this.starGeo.attributes.position.array[i]>5) this.starGeo.attributes.position.array[i]=-15; } });
+                    this.starGeo.attributes.position.needsUpdate = true;
+                    if(this.heart) { this.heart.rotation.y = t*0.8; this.heart.scale.setScalar(0.5+Math.sin(t*3)*0.05); }
+                    this.renderer.render(this.scene, this.camera); requestAnimationFrame(animate);
                 }; animate();
+            }
+            addStars() {
+                this.starGeo = new THREE.BufferGeometry(); const pos = [];
+                for(let i=0; i<3000; i++) pos.push((Math.random()-0.5)*30, (Math.random()-0.5)*30, (Math.random()-0.5)*30);
+                this.starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+                this.scene.add(new THREE.Points(this.starGeo, new THREE.PointsMaterial({color:0xffffff, size:0.05})));
             }
         }
 
@@ -376,10 +250,7 @@
             const cont = document.getElementById('msgLoop'); let idx = 0;
             const show = () => {
                 cont.innerHTML = `<p class="message-text visible">${msgs[idx]}</p>`;
-                setTimeout(() => { 
-                    if(cont.firstChild) cont.firstChild.classList.remove('visible');
-                    setTimeout(() => { idx = (idx+1)%msgs.length; show(); }, 2000);
-                }, 5000);
+                setTimeout(() => { if(cont.firstChild) cont.firstChild.classList.remove('visible'); setTimeout(() => { idx = (idx+1)%msgs.length; show(); }, 1500); }, 4000);
             }; show();
         }
     </script>
