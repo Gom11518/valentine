@@ -38,37 +38,36 @@
       margin: 0;
     }
 
-    /* --- ส่วนแก้ไขใหม่: คอนเทนเนอร์ข้อความมุมซ้ายล่าง --- */
+    /* กล่องข้อความล่างซ้าย (ไร้กรอบ) */
     .message-container {
-      position: absolute;
-      bottom: 40px; /* ระยะห่างจากด้านล่าง */
-      left: 30px;   /* ระยะห่างจากด้านซ้าย */
-      text-align: left;
+      position: fixed;
+      bottom: 30px;
+      left: 30px;
+      width: auto;
+      height: auto;
       z-index: 20;
-      /* ไม่มีกรอบและพื้นหลังแล้ว */
+      text-align: left;
+      background: transparent !important;
+      border: none !important;
+      box-shadow: none !important;
     }
 
-    /* สไตล์ของแต่ละประโยค */
-    .message p {
-      position: absolute; /* ให้ข้อความซ้อนทับกันอยู่ที่ตำแหน่งเดิม */
+    .message-text {
+      font-size: 1.5rem;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(255, 105, 180, 0.8);
+      opacity: 0;
+      /* ปรับเวลา Fade ให้สมูทขึ้นเป็น 2 วินาที */
+      transition: opacity 2s ease-in-out;
+      position: absolute;
       bottom: 0;
       left: 0;
-      width: 350px; /* กำหนดความกว้างไม่ให้ข้อความตกบรรทัดแปลกๆ */
-      margin: 0;
-      font-size: 1.3rem; /* เพิ่มขนาดตัวหนังสืออีกนิดให้อ่านง่าย */
-      font-weight: 600;
-      color: #fff0f5;
-      text-shadow: 0 2px 5px rgba(0,0,0,0.7);
-      
-      opacity: 0; /* ซ่อนไว้ก่อน */
-      transform: translateY(20px); /* ดันลงไปข้างล่างนิดหน่อย */
-      transition: all 1s ease-in-out; /* เอฟเฟกต์การค่อยๆ ปรากฏ */
+      white-space: nowrap;
     }
 
-    /* คลาสสำหรับประโยคที่กำลังแสดงผล */
-    .message p.active {
-      opacity: 1; /* แสดง */
-      transform: translateY(0); /* เลื่อนขึ้นมาตำแหน่งปกติ */
+    .message-text.visible {
+      opacity: 1;
     }
 
     @keyframes glow { 
@@ -83,65 +82,74 @@
 
   <div class="content-overlay">
     <h1>I Love You</h1>
-    
-    <div class="message-container message">
-      <p class="active">รักเธอนะจุ๊บๆ🩷🐰🐻</p>
-      <p>อยากกอดจังง</p>
-      <p>ตัวเล็กของเค้า</p>
-      <p>คิดถึงตลอดเวลาเลย</p>
-      <p>น่ารักที่สุดในโลกแล้ว</p>
-      <p>ยิ้มเยอะๆนะตัวเล็ก</p>
-      <p>มาอ้อนหน่อย</p>
-      <p>ง้ำๆ</p>
-      <p>รักๆๆๆ</p>
-      <p>กินเค้าาา</p>
-      <p>อยู่ในใจตลอด</p>
-    </div>
+    <div class="message-container" id="msgContainer"></div>
   </div>
 
   <script type="module">
     import * as THREE from 'https://cdn.skypack.dev/three@0.135.0';
     import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.135.0/examples/jsm/loaders/GLTFLoader';
 
-    // --- ส่วนเสริม: ฟังก์ชันควบคุมการเปลี่ยนข้อความ ---
-    function cycleMessages() {
-      const messages = document.querySelectorAll('.message p');
-      let currentIndex = 0;
+    // --- ส่วนจัดการข้อความ ---
+    const messages = [
+      "รักเธอนะจุ๊บๆ",
+      "อยากกอดจังง",
+      "ตัวเล็กของเค้า",
+      "คิดถึงตลอดเวลาเลย",
+      "น่ารักที่สุดในโลกแล้ว",
+      "ยิ้มเยอะๆนะตัวเล็ก",
+      "มาอ้อนหน่อย",
+      "ง้ำๆ",
+      "รักๆๆๆ",
+      "กินเค้าาา",
+      "อยู่ในใจตลอด"
+    ];
 
-      setInterval(() => {
-        // 1. ซ่อนข้อความปัจจุบัน
-        messages[currentIndex].classList.remove('active');
+    const container = document.getElementById('msgContainer');
+    let currentIndex = 0;
 
-        // 2. ขยับไปอินเด็กซ์ถัดไป (ถ้าเกินให้วนกลับมา 0)
-        currentIndex = (currentIndex + 1) % messages.length;
+    function showNextMessage() {
+      container.innerHTML = '';
+      const p = document.createElement('p');
+      p.className = 'message-text';
+      p.innerText = messages[currentIndex];
+      container.appendChild(p);
 
-        // 3. แสดงข้อความถัดไป
-        messages[currentIndex].classList.add('active');
-      }, 3000); // เปลี่ยนข้อความทุกๆ 3 วินาที (ปรับเวลาตรงนี้ได้)
+      // เริ่ม Fade In
+      setTimeout(() => {
+        p.classList.add('visible');
+      }, 100);
+
+      // *** แก้ไขเวลาตรงนี้ ***
+      // 5000ms = 5 วินาที (รวมเวลา Fade In 2 วิ + โชว์เต็มๆ 3 วิ)
+      setTimeout(() => {
+        p.classList.remove('visible'); // เริ่ม Fade Out
+        
+        // รอให้จางหายไปจนหมด (2 วินาที) แล้วค่อยเปลี่ยนประโยค
+        setTimeout(() => {
+          currentIndex = (currentIndex + 1) % messages.length;
+          showNextMessage();
+        }, 2000);
+        
+      }, 5000); 
     }
-    
-    // เรียกใช้ฟังก์ชันทันที
-    cycleMessages();
+
+    showNextMessage();
 
 
-    // --- ส่วน 3D Three.js (เหมือนเดิม) ---
+    // --- ส่วน 3D (เหมือนเดิม) ---
     class ValentineWorld {
       constructor() {
         this.canvas = document.querySelector('.webgl');
         this.scene = new THREE.Scene();
         this.textureLoader = new THREE.TextureLoader();
         this.clock = new THREE.Clock();
-        
         this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
         this.camera.position.z = 5;
-        
         this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
         this.renderer.setSize(window.innerWidth, window.innerHeight);
         this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
         this.photoGroup = new THREE.Group();
         this.scene.add(this.photoGroup);
-
         this.init();
       }
 
