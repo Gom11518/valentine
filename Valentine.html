@@ -18,7 +18,6 @@
       flex-direction: column; 
       align-items: center; 
       justify-content: space-between; 
-      /* แก้ไข: ลด padding ด้านบนเหลือ 8vh เพื่อให้ข้อความขยับขึ้น */
       padding: 8vh 2rem 12vh 2rem; 
       z-index: 10; 
       pointer-events: none; 
@@ -26,11 +25,9 @@
 
     h1 { 
       font-family: 'Parisienne', cursive; 
-      /* แก้ไข: ปรับขนาดฟอนต์ให้เล็กลงนิดหน่อย (จาก 3.5rem เป็น 2.5rem) */
       font-size: clamp(2.5rem, 8vw, 5rem); 
       text-shadow: 0 0 25px rgba(255, 102, 204, 0.9); 
       animation: glow 2s ease-in-out infinite alternate; 
-      /* ดันข้อความขึ้นไปอีกนิด */
       margin-bottom: auto;
     }
 
@@ -101,12 +98,19 @@
         const radius = 3.2;
         photos.forEach((url, i) => {
           this.textureLoader.load(url, (tex) => {
+            // ใช้ DoubleSide เพื่อให้เห็นทั้งหน้าและหลัง
             const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
             const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.9), mat);
             const angle = (i / photos.length) * Math.PI * 2;
-            // แก้ไข: เอา Math.random() ออก เพื่อให้รูปอยู่ในระนาบเดียวกัน (Y=0)
+            
             mesh.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
+            
+            // หันหน้าเข้าจุดกึ่งกลาง
             mesh.lookAt(0, 0, 0);
+            
+            // --- แก้ไขตรงนี้: หมุนกลับหลังหัน 180 องศา (Math.PI) ---
+            mesh.rotateY(Math.PI); 
+            
             this.photoGroup.add(mesh);
           }, undefined, (err) => {
               console.error("Error loading image:", url);
@@ -118,7 +122,6 @@
         const loader = new GLTFLoader();
         loader.load('https://assets.codepen.io/74321/heart.glb', (gltf) => {
           this.heart = gltf.scene;
-          // แก้ไข: ปรับขนาดตั้งต้นให้ใหญ่ขึ้น (จาก 0.3 เป็น 0.5)
           this.heart.scale.set(0.5, 0.5, 0.5);
           this.heart.traverse(n => { if(n.isMesh) n.material = new THREE.MeshBasicMaterial({ color: 0xff3366, wireframe: true }); });
           this.scene.add(this.heart);
@@ -137,7 +140,6 @@
         
         if(this.heart) { 
             this.heart.rotation.y = elapsed * 0.5; 
-            // แก้ไข: ปรับขนาดตอนเต้นให้สัมพันธ์กับขนาดตั้งต้นใหม่ (ฐานคือ 0.5)
             this.heart.scale.setScalar(0.5 + Math.sin(elapsed * 2) * 0.03); 
         }
         
