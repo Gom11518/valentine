@@ -1,248 +1,289 @@
 <!DOCTYPE html>
-<html lang="th">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Valentine Mystery Game</title>
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Parisienne&family=Sarabun:wght@300;600;700&display=swap');
+<meta charset="UTF-8">
+<title>Valentine Game</title>
 
-        body { margin: 0; padding: 0; background: #050205; color: white; font-family: 'Sarabun', sans-serif; overflow: hidden; touch-action: manipulation; }
-        
-        /* --- Snake Game Styling --- */
-        #game-section { 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            min-height: 100vh; background: #222; width: 100%; position: absolute; z-index: 10;
-        }
-        canvas { background: #000; border: 4px solid #ff4081; box-shadow: 0 0 20px rgba(255, 64, 129, 0.4); border-radius: 10px; }
-        .controls { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 180px; margin-top: 10px; }
-        .btn-control { width: 55px; height: 55px; background: #444; border: 2px solid #666; color: white; border-radius: 12px; font-size: 20px; }
-        #start-btn { padding: 10px 30px; font-size: 20px; background: #f44336; color: white; border: none; border-radius: 50px; cursor: pointer; margin: 10px; font-weight: bold; }
-        #score { font-size: 24px; margin: 5px; color: #ff8fab; font-weight: bold; }
+<style>
 
-        /* --- Lock Screen Styling --- */
-        #lock-section { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-            background: rgba(0, 0, 0, 0.8); backdrop-filter: blur(10px); z-index: 20; 
-        }
-        .pin-display { display: flex; gap: 15px; margin-bottom: 30px; }
-        .pin-dot { width: 15px; height: 15px; border-radius: 50%; background: rgba(255, 255, 255, 0.3); border: 2px solid white; }
-        .pin-dot.filled { background: white; box-shadow: 0 0 10px white; }
-        .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
-        .key { width: 70px; height: 70px; border-radius: 15px; background: rgba(60, 60, 80, 0.8); color: white; font-size: 28px; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.2); }
-        .key.clear { background: #e74c3c; }
-        .key.enter { background: #2ecc71; }
+body{
+ margin:0;
+ font-family:sans-serif;
+ background:black;
+ color:white;
+ text-align:center;
+}
 
-        /* --- 3D World Styling --- */
-        #valentine-world-section { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 5; }
-        .webgl { position: fixed; top: 0; left: 0; outline: none; }
-        .content-overlay { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 30; opacity: 0; transition: opacity 2s; }
-        h1.main-title { position: absolute; top: 5%; width: 100%; text-align: center; font-family: 'Parisienne', cursive; font-size: 3rem; color: #ffccff; text-shadow: 0 0 20px #ff66cc; }
-        .message-container { position: fixed; bottom: 30px; left: 30px; z-index: 35; }
-        .message-text { font-size: 1.5rem; color: #fff; text-shadow: 0 0 10px #ff69b4; opacity: 0; transition: opacity 1.5s; }
-        .visible { opacity: 1 !important; }
+/* ---------- GAME ---------- */
 
-        /* Animations */
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
-        .shake { animation: shake 0.3s ease-in-out; }
-    </style>
+#game-container{
+ display:flex;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ height:100vh;
+}
+
+canvas{
+ background:#111;
+}
+
+button{
+ padding:10px 20px;
+ font-size:18px;
+ margin-top:10px;
+ cursor:pointer;
+}
+
+.card{
+ display:none;
+ flex-direction:column;
+ align-items:center;
+ justify-content:center;
+ height:100vh;
+}
+
+#lockScreen{
+ visibility:hidden;
+ opacity:0;
+ position:absolute;
+ top:0;
+ left:0;
+ width:100%;
+ height:100%;
+ background:#000;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ flex-direction:column;
+}
+
+.webgl{
+ position:fixed;
+ top:0;
+ left:0;
+ outline:none;
+}
+
+</style>
 </head>
+
 <body>
 
-    <audio id="mySong" loop><source src="tiptoe.mp3" type="audio/mpeg"></audio>
+<!-- ================= GAME ================= -->
 
-    <div id="game-section">
-        <div id="score">Score: 0</div>
-        <canvas id="game"></canvas>
-        <button id="start-btn" onclick="startGame()">❤️ เริ่มเกม ❤️</button>
-        <div class="controls">
-            <div></div><button class="btn-control" onclick="handleBtn('up')">W</button><div></div>
-            <button class="btn-control" onclick="handleBtn('left')">A</button>
-            <button class="btn-control" onclick="handleBtn('down')">S</button>
-            <button class="btn-control" onclick="handleBtn('right')">D</button>
-        </div>
-    </div>
+<div id="game-container">
 
-    <div id="lock-section">
-        <div style="font-size: 24px; color: #ffccff; margin-bottom: 20px;">ใส่รหัส "เวลารัก" ของเรา</div>
-        <div class="pin-display" id="pinDisplay">
-            <div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div><div class="pin-dot"></div>
-        </div>
-        <div class="keypad">
-            <div class="key" onclick="press(1)">1</div><div class="key" onclick="press(2)">2</div><div class="key" onclick="press(3)">3</div>
-            <div class="key" onclick="press(4)">4</div><div class="key" onclick="press(5)">5</div><div class="key" onclick="press(6)">6</div>
-            <div class="key" onclick="press(7)">7</div><div class="key" onclick="press(8)">8</div><div class="key" onclick="press(9)">9</div>
-            <div class="key clear" onclick="clearPin()">✕</div><div class="key" onclick="press(0)">0</div><div class="key enter" onclick="checkPin()">✓</div>
-        </div>
-    </div>
+<h2>Snake Game ❤️</h2>
 
-    <div id="valentine-world-section">
-        <canvas class="webgl"></canvas>
-        <div class="content-overlay" id="overlay">
-            <h1 class="main-title">Happy Valentine 2026</h1>
-            <div class="message-container" id="msgContainer"></div>
-        </div>
-    </div>
+<div id="score">Score: 0</div>
 
-    <script type="module">
-        import * as THREE from 'https://cdn.skypack.dev/three@0.135.0';
-        import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.135.0/examples/jsm/loaders/GLTFLoader';
+<canvas id="game" width="400" height="400"></canvas>
 
-        // --- Logic: Game Snake ---
-        const canvas = document.getElementById('game');
-        const ctx = canvas.getContext('2d');
-        const tileCount = 20;
-        let box, snake = [], food = {}, direction = 'right', nextDirection = 'right', score = 0, gameInterval, isGameRunning = false;
+<button onclick="startGame()">Start</button>
 
-        function resizeGame() {
-            let size = Math.min(window.innerWidth - 20, window.innerHeight - 300);
-            canvas.width = canvas.height = size;
-            box = size / tileCount;
-        }
-        window.addEventListener('resize', resizeGame);
-        resizeGame();
+</div>
 
-        window.startGame = () => {
-            snake = [{x: 10, y: 10}]; direction = nextDirection = 'right'; score = 0; isGameRunning = true;
-            document.getElementById('score').innerText = "Score: " + score;
-            spawnFood();
-            if(gameInterval) clearInterval(gameInterval);
-            gameInterval = setInterval(draw, 130);
-            document.getElementById('start-btn').innerText = "🔄 เริ่มใหม่";
-        };
 
-        function spawnFood() {
-            while (true) {
-                let newFood = { x: Math.floor(Math.random()*tileCount), y: Math.floor(Math.random()*tileCount) };
-                if (!snake.some(p => p.x === newFood.x && p.y === newFood.y)) { food = newFood; break; }
-            }
-        }
+<!-- ================= VALENTINE PAGE ================= -->
 
-        window.handleBtn = (dir) => {
-            if (!isGameRunning) return;
-            if(dir==='left' && direction!=='right') nextDirection='left';
-            if(dir==='up' && direction!=='down') nextDirection='up';
-            if(dir==='right' && direction!=='left') nextDirection='right';
-            if(dir==='down' && direction!=='up') nextDirection='down';
-        };
+<div class="card" id="valentine-container">
 
-        function draw() {
-            direction = nextDirection;
-            let head = {x: snake[0].x, y: snake[0].y};
-            if(direction === 'left') head.x--; if(direction === 'up') head.y--;
-            if(direction === 'right') head.x++; if(direction === 'down') head.y++;
+<h1>Happy Valentine ❤️</h1>
 
-            if(head.x<0 || head.x>=tileCount || head.y<0 || head.y>=tileCount || snake.some(p=>p.x===head.x&&p.y===head.y)) {
-                gameOver(); return;
-            }
-            snake.unshift(head);
-            if(head.x === food.x && head.y === food.y) {
-                score += 10; document.getElementById('score').innerText = "Score: " + score; spawnFood();
-            } else { snake.pop(); }
+<p>เก่งมาก! เค้ามีไรจะบอก</p>
 
-            ctx.fillStyle = "black"; ctx.fillRect(0,0,canvas.width,canvas.height);
-            ctx.fillStyle = "#ff4081"; ctx.beginPath(); ctx.arc(food.x*box+box/2, food.y*box+box/2, box/2-2, 0, Math.PI*2); ctx.fill();
-            snake.forEach((p,i) => { ctx.fillStyle = i===0 ? "#00E676" : "#4CAF50"; ctx.fillRect(p.x*box+1, p.y*box+1, box-2, box-2); });
-        }
+<button onclick="showWish()">กดต่อ</button>
 
-        function gameOver() {
-            isGameRunning = false;
-            clearInterval(gameInterval);
-            if (score >= 300) {
-                document.getElementById('game-section').style.display = 'none';
-                document.getElementById('lock-section').style.display = 'flex';
-            } else {
-                alert("Game Over! ได้ " + score + " แต้มเอง\nต้องได้ 300 แต้มถึงจะเจอความลับนะ!");
-            }
-        }
+</div>
 
-        // --- Logic: Lock Screen ---
-        let currentPin = "";
-        const correctPin = "2255";
 
-        window.press = (num) => {
-            if (currentPin.length < 4) { currentPin += num; updatePinDisplay(); }
-        };
-        window.clearPin = () => { currentPin = ""; updatePinDisplay(); };
-        window.checkPin = () => {
-            if (currentPin === correctPin) {
-                document.getElementById('lock-section').style.display = 'none';
-                document.getElementById('valentine-world-section').style.display = 'block';
-                startValentineWorld();
-            } else {
-                document.getElementById('pinDisplay').classList.add('shake');
-                setTimeout(() => { document.getElementById('pinDisplay').classList.remove('shake'); clearPin(); }, 300);
-            }
-        };
-        function updatePinDisplay() {
-            const dots = document.querySelectorAll('.pin-dot');
-            dots.forEach((dot, i) => i < currentPin.length ? dot.classList.add('filled') : dot.classList.remove('filled'));
-        }
+<!-- ================= VALENTINE 2026 ================= -->
 
-        // --- Logic: 3D Valentine World ---
-        function startValentineWorld() {
-            document.getElementById('mySong').play();
-            document.getElementById('overlay').classList.add('visible');
-            new ValentineWorld();
-            startMessageLoop();
-        }
+<div class="card" id="wish-page">
 
-        class ValentineWorld {
-            constructor() {
-                this.scene = new THREE.Scene();
-                this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-                this.renderer = new THREE.WebGLRenderer({ canvas: document.querySelector('.webgl'), antialias: true, alpha: true });
-                this.renderer.setSize(window.innerWidth, window.innerHeight);
-                this.camera.position.z = 5;
-                this.init();
-            }
-            init() {
-                // Stars
-                const geo = new THREE.BufferGeometry();
-                const pos = new Float32Array(3000 * 3);
-                for(let i=0; i<3000*3; i++) pos[i] = (Math.random() - 0.5) * 20;
-                geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-                this.stars = new THREE.Points(geo, new THREE.PointsMaterial({ size: 0.02, color: 0xffccff }));
-                this.scene.add(this.stars);
+<h1>Valentine 2026</h1>
 
-                // Photo Ring (ใช้รูป Tong1 - Tong11 ตามโค้ดคุณ)
-                this.photoGroup = new THREE.Group();
-                const loader = new THREE.TextureLoader();
-                for(let i=1; i<=11; i++) {
-                    loader.load(`Tong${i}.jpg`, (tex) => {
-                        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.8), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
-                        const angle = (i/11) * Math.PI * 2;
-                        mesh.position.set(Math.cos(angle)*3, (Math.random()-0.5), Math.sin(angle)*3);
-                        mesh.lookAt(0,0,0);
-                        this.photoGroup.add(mesh);
-                    });
-                }
-                this.scene.add(this.photoGroup);
-                this.animate();
-            }
-            animate() {
-                requestAnimationFrame(() => this.animate());
-                this.photoGroup.rotation.y += 0.01;
-                this.stars.rotation.y += 0.001;
-                this.renderer.render(this.scene, this.camera);
-            }
-        }
+<p>เค้ารักเธอน๊าาาอยู่กับเค้าไปนานๆ</p>
 
-        function startMessageLoop() {
-            const msgs = ["รักเธอนะจุ๊บๆ", "ตัวเล็กของเค้า", "คิดถึงตลอดเวลา", "ยิ้มเยอะๆนะ", "น่ารักที่สุด"];
-            let i = 0;
-            const container = document.getElementById('msgContainer');
-            function next() {
-                container.innerHTML = `<p class="message-text">${msgs[i]}</p>`;
-                setTimeout(() => container.firstChild.classList.add('visible'), 100);
-                setTimeout(() => {
-                    container.firstChild.classList.remove('visible');
-                    setTimeout(() => { i = (i+1)%msgs.length; next(); }, 1000);
-                }, 4000);
-            }
-            next();
-        }
-    </script>
+<button onclick="goToLock()">ต่อไป</button>
+
+</div>
+
+
+<!-- ================= LOCK SCREEN ================= -->
+
+<div id="lockScreen">
+
+<h2>ใส่รหัสเข้าโลก ❤️</h2>
+
+<input id="pinInput" type="password">
+
+<button onclick="checkPin()">ยืนยัน</button>
+
+</div>
+
+
+<!-- ================= 3D WORLD ================= -->
+
+<canvas class="webgl"></canvas>
+
+<div id="worldUI" style="display:none;position:absolute;top:20px;width:100%;">
+
+<h2>Welcome to Valentine World 🌌</h2>
+<p>ตรงนี้คุณใส่ gallery / รูป / three.js ได้เลย</p>
+
+</div>
+
+
+
+<audio id="song" loop>
+<source src="tiptoe.mp3" type="audio/mpeg">
+</audio>
+
+
+<script>
+
+/* ================= SNAKE GAME ================= */
+
+const canvas=document.getElementById('game');
+const ctx=canvas.getContext('2d');
+
+let snake=[{x:10,y:10}];
+let food={x:5,y:5};
+let dir="right";
+let score=0;
+let interval;
+
+function startGame(){
+
+ snake=[{x:10,y:10}];
+ score=0;
+
+ clearInterval(interval);
+
+ interval=setInterval(draw,120);
+}
+
+function draw(){
+
+ let head={...snake[0]};
+
+ if(dir==="right") head.x++;
+ if(dir==="left") head.x--;
+ if(dir==="up") head.y--;
+ if(dir==="down") head.y++;
+
+ if(head.x<0||head.x>19||head.y<0||head.y>19){
+   gameOver();
+   return;
+ }
+
+ snake.unshift(head);
+
+ if(head.x===food.x&&head.y===food.y){
+
+   score+=10;
+   document.getElementById("score").innerText="Score: "+score;
+
+   food.x=Math.floor(Math.random()*20);
+   food.y=Math.floor(Math.random()*20);
+
+ }else{
+   snake.pop();
+ }
+
+ ctx.fillStyle="black";
+ ctx.fillRect(0,0,400,400);
+
+ ctx.fillStyle="red";
+ ctx.fillRect(food.x*20,food.y*20,20,20);
+
+ ctx.fillStyle="lime";
+ snake.forEach(p=>ctx.fillRect(p.x*20,p.y*20,18,18));
+}
+
+document.addEventListener("keydown",e=>{
+
+ if(e.key==="ArrowUp")dir="up";
+ if(e.key==="ArrowDown")dir="down";
+ if(e.key==="ArrowLeft")dir="left";
+ if(e.key==="ArrowRight")dir="right";
+});
+
+function gameOver(){
+
+ clearInterval(interval);
+
+ if(score>=300){
+
+   switchToValentine();
+
+ }else{
+
+   alert("ต้องได้ 300 คะแนน!");
+ }
+}
+
+
+/* ================= FLOW ================= */
+
+function switchToValentine(){
+
+ document.getElementById("game-container").style.display="none";
+
+ document.getElementById("valentine-container").style.display="flex";
+
+ document.getElementById("song").play();
+}
+
+function showWish(){
+
+ document.getElementById("valentine-container").style.display="none";
+
+ document.getElementById("wish-page").style.display="flex";
+}
+
+function goToLock(){
+
+ document.getElementById("wish-page").style.display="none";
+
+ let lock=document.getElementById("lockScreen");
+
+ lock.style.visibility="visible";
+ lock.style.opacity="1";
+}
+
+function checkPin(){
+
+ let pin=document.getElementById("pinInput").value;
+
+ if(pin==="2255"){
+
+   document.getElementById("lockScreen").style.display="none";
+
+   document.getElementById("worldUI").style.display="block";
+
+   start3D();
+
+ }else{
+
+   alert("รหัสผิด!");
+ }
+}
+
+
+/* ================= THREE JS PLACEHOLDER ================= */
+
+function start3D(){
+
+ console.log("เริ่มโลก 3D");
+
+ // ใส่ three.js scene ของคุณตรงนี้ได้เลย
+
+}
+
+</script>
+
 </body>
 </html>
