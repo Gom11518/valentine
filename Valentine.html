@@ -2,15 +2,38 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <title>I Love You - Valentine 3D</title>
+  <title>I Love You - 3D Valentine</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Parisienne&family=Sarabun:wght@300&display=swap');
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { overflow: hidden; background: #050205; color: #ffccff; font-family: 'Sarabun', sans-serif; }
     canvas { position: fixed; top: 0; left: 0; outline: none; }
-    .content-overlay { position: absolute; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 12vh 2rem; z-index: 10; pointer-events: none; }
-    h1 { font-family: 'Parisienne', cursive; font-size: clamp(3.5rem, 10vw, 6rem); text-shadow: 0 0 25px rgba(255, 102, 204, 0.9); animation: glow 2s ease-in-out infinite alternate; }
+    
+    .content-overlay { 
+      position: absolute; 
+      width: 100%; 
+      height: 100%; 
+      display: flex; 
+      flex-direction: column; 
+      align-items: center; 
+      justify-content: space-between; 
+      /* แก้ไข: ลด padding ด้านบนเหลือ 8vh เพื่อให้ข้อความขยับขึ้น */
+      padding: 8vh 2rem 12vh 2rem; 
+      z-index: 10; 
+      pointer-events: none; 
+    }
+
+    h1 { 
+      font-family: 'Parisienne', cursive; 
+      /* แก้ไข: ปรับขนาดฟอนต์ให้เล็กลงนิดหน่อย (จาก 3.5rem เป็น 2.5rem) */
+      font-size: clamp(2.5rem, 8vw, 5rem); 
+      text-shadow: 0 0 25px rgba(255, 102, 204, 0.9); 
+      animation: glow 2s ease-in-out infinite alternate; 
+      /* ดันข้อความขึ้นไปอีกนิด */
+      margin-bottom: auto;
+    }
+
     .dedication { text-align: center; background: rgba(255, 192, 203, 0.1); padding: 1.2rem 2.5rem; border-radius: 50px; backdrop-filter: blur(8px); border: 1px solid rgba(255, 192, 203, 0.3); }
     @keyframes glow { from { text-shadow: 0 0 20px rgba(255, 102, 204, 0.8); } to { text-shadow: 0 0 35px rgba(255, 102, 204, 1), 0 0 10px #fff; } }
   </style>
@@ -69,7 +92,6 @@
       }
 
       addPhotoRing() {
-        // ชื่อไฟล์ต้องตรงกับในโฟลเดอร์เป๊ะๆ (Tong ตัวใหญ่)
         const photos = [
           'Tong1.jpg', 'Tong2.jpg', 'Tong3.jpg', 'Tong4.jpg', 
           'Tong5.jpg', 'Tong6.jpg', 'Tong7.jpg', 'Tong8.jpg', 
@@ -78,16 +100,16 @@
         
         const radius = 3.2;
         photos.forEach((url, i) => {
-          // โหลดรูปภาพโดยตรง (เพราะไฟล์อยู่ทีเดียวกันแล้ว)
           this.textureLoader.load(url, (tex) => {
             const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
             const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.9), mat);
             const angle = (i / photos.length) * Math.PI * 2;
-            mesh.position.set(Math.cos(angle) * radius, (Math.random()-0.5), Math.sin(angle) * radius);
+            // แก้ไข: เอา Math.random() ออก เพื่อให้รูปอยู่ในระนาบเดียวกัน (Y=0)
+            mesh.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
             mesh.lookAt(0, 0, 0);
             this.photoGroup.add(mesh);
           }, undefined, (err) => {
-            console.error("โหลดรูปไม่ได้ครับ: " + url);
+              console.error("Error loading image:", url);
           });
         });
       }
@@ -96,7 +118,8 @@
         const loader = new GLTFLoader();
         loader.load('https://assets.codepen.io/74321/heart.glb', (gltf) => {
           this.heart = gltf.scene;
-          this.heart.scale.set(0.3, 0.3, 0.3);
+          // แก้ไข: ปรับขนาดตั้งต้นให้ใหญ่ขึ้น (จาก 0.3 เป็น 0.5)
+          this.heart.scale.set(0.5, 0.5, 0.5);
           this.heart.traverse(n => { if(n.isMesh) n.material = new THREE.MeshBasicMaterial({ color: 0xff3366, wireframe: true }); });
           this.scene.add(this.heart);
         });
@@ -111,7 +134,13 @@
         }
         this.starGeo.attributes.position.needsUpdate = true;
         if(this.photoGroup) this.photoGroup.rotation.y = elapsed * 0.15;
-        if(this.heart) { this.heart.rotation.y = elapsed * 0.5; this.heart.scale.setScalar(0.3 + Math.sin(elapsed * 2) * 0.02); }
+        
+        if(this.heart) { 
+            this.heart.rotation.y = elapsed * 0.5; 
+            // แก้ไข: ปรับขนาดตอนเต้นให้สัมพันธ์กับขนาดตั้งต้นใหม่ (ฐานคือ 0.5)
+            this.heart.scale.setScalar(0.5 + Math.sin(elapsed * 2) * 0.03); 
+        }
+        
         this.renderer.render(this.scene, this.camera);
         requestAnimationFrame(() => this.animate());
       }
