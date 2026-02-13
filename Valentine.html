@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Valentine 2026 - Final Version (Updated Stars)</title>
+    <title>Valentine 2026 - Final Version</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Parisienne&family=Sarabun:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -163,7 +163,7 @@
         window.proceedToLock = () => { document.getElementById('message-section').classList.remove('active'); document.getElementById('lock-section').classList.add('active'); start2DBackground(); };
         window.enter3DWorld = () => { document.getElementById('lock-section').classList.remove('active'); document.getElementById('webgl-section').classList.add('active'); new Final3D(); startFinalMessages(); };
 
-        // --- 2D BACKGROUND (LOCK SCREEN) ---
+        // --- 2D BACKGROUND (LOCK SCREEN) - Updated Stars ---
         const c2d = document.getElementById('canvas2d'), ctx2d = c2d.getContext('2d');
         let parts2d = [], stars2d = [], t2d = 0;
 
@@ -175,16 +175,35 @@
             else { document.getElementById('dots-container').classList.add('shake'); setTimeout(()=>{ document.getElementById('dots-container').classList.remove('shake'); window.clearPin(); }, 300); }
         };
 
+        // Class ดาวตกแบบใหม่ (ช้า+สี+เยอะ)
         class Star2D {
             constructor() { this.reset(); }
-            reset() { this.x = Math.random()*c2d.width; this.y = Math.random()*-c2d.height; this.spd = Math.random()*2+1; this.len = Math.random()*80+50; }
-            update() { this.x -= this.spd; this.y += this.spd; if(this.y > c2d.height) this.reset(); }
-            draw() { ctx2d.strokeStyle = 'white'; ctx2d.beginPath(); ctx2d.moveTo(this.x, this.y); ctx2d.lineTo(this.x+this.len, this.y-this.len); ctx2d.stroke(); }
+            reset() {
+                this.x = Math.random() * c2d.width; 
+                this.y = Math.random() * -c2d.height;
+                this.speed = Math.random() * 0.7 + 0.3; // ช้าลง
+                this.len = Math.random() * 60 + 30;
+                this.opacity = Math.random() * 0.5 + 0.3;
+                const colors = ['255, 255, 255', '255, 182, 193', '135, 206, 250']; // ขาว, ชมพู, ฟ้า
+                this.color = colors[Math.floor(Math.random() * colors.length)];
+            }
+            draw() {
+                const gradient = ctx2d.createLinearGradient(this.x, this.y, this.x + this.len, this.y - this.len);
+                gradient.addColorStop(0, `rgba(${this.color}, ${this.opacity})`);
+                gradient.addColorStop(1, `rgba(${this.color}, 0)`);
+                ctx2d.strokeStyle = gradient;
+                ctx2d.lineWidth = 1.2;
+                ctx2d.beginPath(); ctx2d.moveTo(this.x, this.y); ctx2d.lineTo(this.x+this.len, this.y-this.len); ctx2d.stroke();
+            }
+            update() {
+                this.x -= this.speed; this.y += this.speed;
+                if(this.y > c2d.height + 100) this.reset();
+            }
         }
 
         function start2DBackground() {
             c2d.width = window.innerWidth; c2d.height = window.innerHeight;
-            for(let i=0; i<15; i++) stars2d.push(new Star2D());
+            for(let i=0; i<40; i++) stars2d.push(new Star2D()); // เพิ่มจำนวนดาวเป็น 40 ดวง
             const hF = (t,s=15) => ({ x: 16*Math.pow(Math.sin(t),3)*s, y: -(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))*s });
             for(let i=0; i<Math.PI*2; i+=0.02) { let p=hF(i); parts2d.push({bx:p.x, by:p.y, bz:(Math.random()-0.5)*30}); }
             function anim(){
@@ -208,14 +227,14 @@
             }, 800);
         }
 
-        // --- 3D WORLD (UPDATED STARS) ---
+        // --- 3D WORLD ---
         class Final3D {
             constructor() {
                 this.scene = new THREE.Scene(); this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
                 this.renderer = new THREE.WebGLRenderer({canvas: document.querySelector('.webgl-canvas'), antialias:true, alpha:true});
                 this.renderer.setSize(window.innerWidth, window.innerHeight); this.camera.position.z = 5;
                 this.group = new THREE.Group(); this.scene.add(this.group);
-                this.addStars(); // เรียกใช้ฟังก์ชันสร้างดาวแบบใหม่
+                this.addStars();
                 const loader = new THREE.TextureLoader();
                 ['Tong1.jpg','Tong2.jpg','Tong3.jpg','Tong4.jpg','Tong5.jpg','Tong6.jpg','Tong7.jpg','Tong8.jpg','Tong9.jpg','Tong10.jpg','Tong11.jpg'].forEach((url,i)=>{
                     loader.load(url, t=>{
@@ -231,50 +250,22 @@
                 });
                 const animate = () => {
                     let t = Date.now()*0.001; this.group.rotation.y = t*0.15;
-                    // อัปเดตตำแหน่งดาวให้ตกช้าๆ ในแนวแกน Y
-                    this.starGeo.attributes.position.array.forEach((v,i) => { 
-                        if(i%3===1) { // แกน Y
-                            this.starGeo.attributes.position.array[i] -= 0.005; // ความเร็วในการตก (ยิ่งน้อยยิ่งช้า)
-                            if(this.starGeo.attributes.position.array[i] < -20) this.starGeo.attributes.position.array[i] = 20; // วนกลับไปข้างบน
-                        } 
-                    });
+                    this.starGeo.attributes.position.array.forEach((v,i) => { if(i%3===2) { this.starGeo.attributes.position.array[i]+=0.02; if(this.starGeo.attributes.position.array[i]>5) this.starGeo.attributes.position.array[i]=-15; } });
                     this.starGeo.attributes.position.needsUpdate = true;
                     if(this.heart) { this.heart.rotation.y = t*0.8; this.heart.scale.setScalar(0.5+Math.sin(t*3)*0.05); }
                     this.renderer.render(this.scene, this.camera); requestAnimationFrame(animate);
                 }; animate();
             }
-            
-            // ฟังก์ชันสร้างดาวแบบใหม่: เยอะขึ้น, มีสี, และโปร่งใส
             addStars() {
-                this.starGeo = new THREE.BufferGeometry();
-                const pos = [];
-                const colors = [];
-                const count = 7000; // เพิ่มจำนวนดาวเป็น 7000 ดวง
-                const colorPalette = [new THREE.Color(0xffffff), new THREE.Color(0xff69b4), new THREE.Color(0x87ceeb)]; // สี ขาว, ชมพู, ฟ้า
-
-                for(let i=0; i<count; i++) {
-                    pos.push((Math.random()-0.5)*40, (Math.random()-0.5)*40, (Math.random()-0.5)*40);
-                    const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
-                    colors.push(color.r, color.g, color.b);
-                }
-
+                this.starGeo = new THREE.BufferGeometry(); const pos = [];
+                for(let i=0; i<3000; i++) pos.push((Math.random()-0.5)*30, (Math.random()-0.5)*30, (Math.random()-0.5)*30);
                 this.starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-                this.starGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-
-                const starMat = new THREE.PointsMaterial({
-                    size: 0.05,
-                    vertexColors: true, // ใช้สีที่กำหนดเอง
-                    transparent: true,
-                    opacity: 0.8,
-                    blending: THREE.AdditiveBlending
-                });
-
-                this.scene.add(new THREE.Points(this.starGeo, starMat));
+                this.scene.add(new THREE.Points(this.starGeo, new THREE.PointsMaterial({color:0xffffff, size:0.05})));
             }
         }
 
         function startFinalMessages() {
-            const msgs = ["รักเธอนะจุ๊บๆ🩷🐰🐻", "อยากกอดจังง", "ตัวเล็กของเค้า", "คิดถึงตลอดเวลาเลย", "น่ารักที่สุดในโลกแล้ว", "ยิ้มเยอะๆนะตัวเล็ก", "รักๆๆๆ", "อยู่ในใจตลอด"];
+            const msgs = ["รักเธอนะจุ๊บๆ🐰🐻", "อยากกอดจังง", "ตัวเล็กของเค้า", "คิดถึงตลอดเวลาเลย", "น่ารักที่สุดในโลกแล้ว", "ยิ้มเยอะๆนะตัวเล็ก", "รักๆๆๆ", "อยู่ในใจตลอด"];
             const cont = document.getElementById('msgLoop'); let idx = 0;
             const show = () => {
                 cont.innerHTML = `<p class="message-text visible">${msgs[idx]}</p>`;
