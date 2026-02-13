@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Valentine 2026 - Final Version</title>
+    <title>Valentine 2026 - Final Pink Version</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Parisienne&family=Sarabun:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -11,7 +11,7 @@
         .section { display: none; width: 100%; height: 100vh; position: fixed; top: 0; left: 0; }
         .section.active { display: flex; flex-direction: column; align-items: center; justify-content: center; }
 
-        /* --- 1. Snake Game Styles --- */
+        /* --- 1. Snake Game --- */
         #game-section { background: #222; }
         canvas#snakeGame { background: #000; border: 4px solid #ff4081; border-radius: 10px; }
         #score { font-size: 24px; margin: 10px; color: #ff8fab; font-weight: bold; }
@@ -19,14 +19,14 @@
         .btn-control { width: 55px; height: 55px; background: #444; color: white; border-radius: 12px; font-size: 20px; }
         #start-btn { padding: 10px 30px; font-size: 20px; background: #f44336; color: white; border: none; border-radius: 50px; cursor: pointer; }
 
-        /* --- 2. Message Cards Styles --- */
+        /* --- 2. Message Cards --- */
         #message-section { background-color: #ffebee; z-index: 50; }
         .card { background: white; padding: 2rem; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); text-align: center; width: 90%; max-width: 400px; color: #333; display: none; }
         .card.active { display: block; }
         .photo-frame { width: 180px; height: 180px; border-radius: 50%; border: 6px solid #ffc1e3; margin: 15px auto; object-fit: cover; display: block; }
         .btn-val { margin-top: 20px; padding: 12px 30px; border: none; background: #e91e63; color: white; border-radius: 25px; cursor: pointer; font-size: 1.1rem; font-weight: bold; }
 
-        /* --- 3. Lock Screen Styles --- */
+        /* --- 3. Lock Screen (2D Background) --- */
         #lock-section { z-index: 100; }
         #canvas2d { position: absolute; top: 0; left: 0; z-index: 1; }
         #floatingTextContainer { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: hidden; }
@@ -40,11 +40,21 @@
         #final-btn-container { position: absolute; bottom: 80px; width: 100%; display: none; justify-content: center; z-index: 120; }
         .btn-small { padding: 8px 25px; font-size: 0.9rem; background: rgba(255,105,180,0.8); color: white; border: none; border-radius: 30px; cursor: pointer; }
 
-        /* --- 4. Final 3D Styles --- */
+        /* --- 4. Final 3D --- */
         #webgl-section { z-index: 200; background: #050205; }
         .webgl-canvas { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .content-overlay { position: absolute; width: 100%; height: 100%; pointer-events: none; z-index: 210; text-align: center; }
         .message-container { position: fixed; bottom: 30px; left: 30px; text-align: left; height: 30px; }
+        
+        /* แก้ไขสีหัวข้อ I Love You เป็นสีชมพู */
+        .main-title {
+            font-family: 'Parisienne', cursive;
+            font-size: clamp(2rem, 8vw, 4.5rem);
+            margin-top: 20px;
+            color: #ff1493; /* สีชมพูเข้ม */
+            text-shadow: 2px 2px 4px rgba(255, 20, 147, 0.5);
+        }
+
         .message-text { font-size: 1.5rem; font-weight: 600; color: #fff; text-shadow: 0 0 10px #ff4081; opacity: 0; transition: 2s; position: absolute; bottom: 0; white-space: nowrap; }
         .message-text.visible { opacity: 1; }
 
@@ -106,7 +116,7 @@
     <div id="webgl-section" class="section">
         <canvas class="webgl-canvas"></canvas>
         <div class="content-overlay">
-            <h1 style="font-family: 'Parisienne', cursive; font-size: clamp(2rem, 8vw, 4.5rem); margin-top: 20px;">I Love You</h1>
+            <h1 class="main-title">I Love You</h1>
             <div class="message-container" id="msgLoop"></div>
         </div>
     </div>
@@ -118,7 +128,7 @@
         let currentPin = "", score = 0, sRunning = false, sInterval;
         const correctPin = "2255", song = document.getElementById('mySong');
 
-        // --- SNAKE GAME LOGIC ---
+        // --- SNAKE GAME ---
         const sCanvas = document.getElementById('snakeGame'), sCtx = sCanvas.getContext('2d');
         const tileCount = 20; let box, snake = [], food = {}, sDir = 'right', sNextDir = 'right';
 
@@ -163,7 +173,7 @@
         window.proceedToLock = () => { document.getElementById('message-section').classList.remove('active'); document.getElementById('lock-section').classList.add('active'); start2DBackground(); };
         window.enter3DWorld = () => { document.getElementById('lock-section').classList.remove('active'); document.getElementById('webgl-section').classList.add('active'); new Final3D(); startFinalMessages(); };
 
-        // --- 2D BACKGROUND (LOCK SCREEN) - Updated with new Star2D ---
+        // --- 2D BACKGROUND (LOCK SCREEN) ---
         const c2d = document.getElementById('canvas2d'), ctx2d = c2d.getContext('2d');
         let parts2d = [], stars2d = [], t2d = 0;
 
@@ -175,19 +185,15 @@
             else { document.getElementById('dots-container').classList.add('shake'); setTimeout(()=>{ document.getElementById('dots-container').classList.remove('shake'); window.clearPin(); }, 300); }
         };
 
-        // Class Star2D ใหม่: สีหลากหลาย, ตกช้าลง, กระจายตัว
         class Star2D {
             constructor() { this.reset(); }
             reset() {
-                // ให้ตำแหน่งเริ่มกระจายกว้างกว่าหน้าจอเล็กน้อย (x: -50% ถึง 150% ของความกว้าง)
-                this.x = (Math.random() * c2d.width * 2) - (c2d.width * 0.5); 
-                this.y = Math.random() * -c2d.height;
-                // ความเร็วลดลง (0.5 ถึง 1.2)
-                this.speed = Math.random() * 0.7 + 0.5; 
+                this.x = Math.random() * window.innerWidth * 1.5 - window.innerWidth * 0.2; 
+                this.y = Math.random() * -window.innerHeight;
+                this.speed = Math.random() * 0.7 + 0.3; 
                 this.len = Math.random() * 60 + 30;
                 this.opacity = Math.random() * 0.5 + 0.3;
-                // สุ่มสี: ขาว, ชมพู, ฟ้า
-                const colors = ['255, 255, 255', '255, 182, 193', '135, 206, 250'];
+                const colors = ['255, 255, 255', '255, 182, 193', '135, 206, 250']; 
                 this.color = colors[Math.floor(Math.random() * colors.length)];
             }
             draw() {
@@ -200,25 +206,24 @@
             }
             update() {
                 this.x -= this.speed; this.y += this.speed;
-                // รีเซ็ตเมื่อตกเลยขอบล่าง หรือไหลออกซ้ายไปไกลเกิน
-                if(this.y > c2d.height + 100 || this.x < -c2d.width) this.reset();
+                if(this.y > window.innerHeight + 100 || this.x < -window.innerWidth) this.reset();
             }
         }
 
         function start2DBackground() {
             c2d.width = window.innerWidth; c2d.height = window.innerHeight;
-            // เพิ่มจำนวนดาวตกเป็น 60 ดวง
-            for(let i=0; i<60; i++) stars2d.push(new Star2D());
-            
+            for(let i=0; i<80; i++) stars2d.push(new Star2D()); 
             const hF = (t,s=15) => ({ x: 16*Math.pow(Math.sin(t),3)*s, y: -(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))*s });
-            // เพิ่มความถี่จุดหัวใจ
-            for(let i=0; i<Math.PI*2; i+=0.01) { let p=hF(i); parts2d.push({bx:p.x, by:p.y, bz:(Math.random()-0.5)*30}); }
-            
+            for(let i=0; i<Math.PI*2; i+=0.01) { let p=hF(i); parts2d.push({bx:p.x, by:p.y, bz:(Math.random()-0.5)*30}); } 
+            for(let i=0; i<2500; i++) {
+                let t = Math.random() * Math.PI * 2;
+                let p = hF(t, 15);
+                let len = Math.sqrt(Math.random()) * 0.95; 
+                parts2d.push({bx:p.x*len, by:p.y*len, bz:(Math.random()-0.5)*30});
+            }
             function anim(){
                 ctx2d.fillStyle='rgba(5,2,5,0.2)'; ctx2d.fillRect(0,0,c2d.width,c2d.height); t2d+=0.015;
-                // วาดดาวตกก่อน
                 stars2d.forEach(s => { s.update(); s.draw(); });
-                
                 let beat = 1+Math.sin(t2d*3)*0.05;
                 parts2d.forEach(p=>{
                     let ang=t2d*0.8; let rx=(p.bx*beat)*Math.cos(ang)-(p.bz*beat)*Math.sin(ang);
@@ -227,7 +232,6 @@
                 });
                 requestAnimationFrame(anim);
             } anim();
-            
             setInterval(() => {
                 const el = document.createElement('div'); el.className='floating-text'; el.innerText='รักตองนะจุ๊บๆ';
                 el.style.setProperty('--startX', Math.random()*100+'vw'); el.style.setProperty('--startY', Math.random()*100+'vh');
@@ -245,6 +249,10 @@
                 this.renderer = new THREE.WebGLRenderer({canvas: document.querySelector('.webgl-canvas'), antialias:true, alpha:true});
                 this.renderer.setSize(window.innerWidth, window.innerHeight); this.camera.position.z = 5;
                 this.group = new THREE.Group(); this.scene.add(this.group);
+                
+                // สร้าง Texture รูปวงกลมสำหรับเม็ดบีด
+                this.circleTexture = new THREE.TextureLoader().load('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI2NCIgaGVpZ2h0PSI2NCI+PGNpcmNsZSBjeD0iMzIiIGN5PSIzMiIgcj0iMzAiIGZpbGw9IiNmZmZmZmYiLz48L3N2Zz4=');
+
                 this.addStars();
                 const loader = new THREE.TextureLoader();
                 ['Tong1.jpg','Tong2.jpg','Tong3.jpg','Tong4.jpg','Tong5.jpg','Tong6.jpg','Tong7.jpg','Tong8.jpg','Tong9.jpg','Tong10.jpg','Tong11.jpg'].forEach((url,i)=>{
@@ -255,7 +263,9 @@
                     });
                 });
                 new GLTFLoader().load('https://assets.codepen.io/74321/heart.glb', g=>{
-                    this.heart = g.scene; this.heart.scale.set(0.5,0.5,0.5);
+                    this.heart = g.scene; 
+                    // ขยายขนาดหัวใจให้ใหญ่ขึ้น 3 เท่า (จาก 0.5 เป็น 1.5)
+                    this.heart.scale.set(1.5, 1.5, 1.5);
                     this.heart.traverse(n=>{if(n.isMesh)n.material=new THREE.MeshBasicMaterial({color:0xff3366, wireframe:true});});
                     this.scene.add(this.heart);
                 });
@@ -263,7 +273,8 @@
                     let t = Date.now()*0.001; this.group.rotation.y = t*0.15;
                     this.starGeo.attributes.position.array.forEach((v,i) => { if(i%3===2) { this.starGeo.attributes.position.array[i]+=0.02; if(this.starGeo.attributes.position.array[i]>5) this.starGeo.attributes.position.array[i]=-15; } });
                     this.starGeo.attributes.position.needsUpdate = true;
-                    if(this.heart) { this.heart.rotation.y = t*0.8; this.heart.scale.setScalar(0.5+Math.sin(t*3)*0.05); }
+                    // อัปเดตการเต้นของหัวใจให้สัมพันธ์กับขนาดใหม่
+                    if(this.heart) { this.heart.rotation.y = t*0.8; this.heart.scale.setScalar(1.5 + Math.sin(t*3)*0.1); }
                     this.renderer.render(this.scene, this.camera); requestAnimationFrame(animate);
                 }; animate();
             }
@@ -271,12 +282,19 @@
                 this.starGeo = new THREE.BufferGeometry(); const pos = [];
                 for(let i=0; i<3000; i++) pos.push((Math.random()-0.5)*30, (Math.random()-0.5)*30, (Math.random()-0.5)*30);
                 this.starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-                this.scene.add(new THREE.Points(this.starGeo, new THREE.PointsMaterial({color:0xffffff, size:0.05})));
+                // ใช้ Texture วงกลม และเปลี่ยนสีเป็นชมพู
+                this.scene.add(new THREE.Points(this.starGeo, new THREE.PointsMaterial({
+                    color: 0xff69b4, // สีชมพู
+                    size: 0.2,        // ขนาดใหญ่ขึ้น
+                    map: this.circleTexture, // รูปทรงวงกลม
+                    transparent: true,
+                    alphaTest: 0.5
+                })));
             }
         }
 
         function startFinalMessages() {
-            const msgs = ["รักเธอนะจุ๊บๆ🩷🐰🐻", "อยากกอดจังง", "ตัวเล็กของเค้า", "คิดถึงตลอดเวลาเลย", "น่ารักที่สุดในโลกแล้ว", "ยิ้มเยอะๆนะตัวเล็ก", "รักๆๆๆ", "อยู่ในใจตลอด"];
+            const msgs = ["รักเธอนะจุ๊บๆ🐰🐻", "อยากกอดจังง", "ตัวเล็กของเค้า", "คิดถึงตลอดเวลาเลย", "น่ารักที่สุดในโลกแล้ว", "ยิ้มเยอะๆนะตัวเล็ก", "รักๆๆๆ", "อยู่ในใจตลอด"];
             const cont = document.getElementById('msgLoop'); let idx = 0;
             const show = () => {
                 cont.innerHTML = `<p class="message-text visible">${msgs[idx]}</p>`;
