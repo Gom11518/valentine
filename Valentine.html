@@ -18,68 +18,57 @@
 
     canvas { position: fixed; top: 0; left: 0; outline: none; }
 
-    /* ปรับ Layout ให้ยืดหยุ่น */
     .content-overlay {
       position: absolute;
       width: 100%;
       height: 100%;
-      pointer-events: none; /* เพื่อให้คลิกทะลุไปหมุนโมเดลได้ */
+      pointer-events: none;
       z-index: 10;
     }
 
-    /* 1. ปรับหัวข้อ I Love You ให้เล็กลงและอยู่บนสุด */
     h1 {
       position: absolute;
-      top: 5%; /* ขยับขึ้นไปข้างบน */
+      top: 5%;
       width: 100%;
       text-align: center;
       font-family: 'Parisienne', cursive;
-      font-size: clamp(2rem, 6vw, 4rem); /* เล็กลงอีกนิด */
+      font-size: clamp(2rem, 6vw, 4rem);
       text-shadow: 0 0 20px rgba(255, 102, 204, 0.9);
       animation: glow 2s ease-in-out infinite alternate;
       margin: 0;
     }
 
-    /* 2. ย้ายกล่องข้อความมาทางซ้าย + ทำเอฟเฟกต์เลื่อน */
-    .dedication-container {
+    /* --- ส่วนแก้ไขใหม่: คอนเทนเนอร์ข้อความมุมซ้ายล่าง --- */
+    .message-container {
       position: absolute;
-      left: 5%;  /* ชิดซ้าย */
-      top: 50%;
-      transform: translateY(-50%); /* จัดกึ่งกลางแนวตั้ง */
-      width: 280px;
-      height: 160px; /* ความสูงของกล่องข้อความ */
-      
-      background: rgba(255, 192, 203, 0.15);
-      border-radius: 20px;
-      border: 1px solid rgba(255, 192, 203, 0.4);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 0 30px rgba(255, 105, 180, 0.2);
-      
-      overflow: hidden; /* ซ่อนข้อความส่วนที่ล้นกรอบ */
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
+      bottom: 40px; /* ระยะห่างจากด้านล่าง */
+      left: 30px;   /* ระยะห่างจากด้านซ้าย */
+      text-align: left;
+      z-index: 20;
+      /* ไม่มีกรอบและพื้นหลังแล้ว */
     }
 
-    /* ตัวห่อหุ้มข้อความที่จะเลื่อน */
-    .scrolling-content {
-      /* คำนวณอนิเมชั่น: 11 ประโยค + ช่องว่าง */
-      animation: scrollUp 15s linear infinite; 
-    }
-
-    .scrolling-content p {
-      font-size: 1.1rem;
+    /* สไตล์ของแต่ละประโยค */
+    .message p {
+      position: absolute; /* ให้ข้อความซ้อนทับกันอยู่ที่ตำแหน่งเดิม */
+      bottom: 0;
+      left: 0;
+      width: 350px; /* กำหนดความกว้างไม่ให้ข้อความตกบรรทัดแปลกๆ */
+      margin: 0;
+      font-size: 1.3rem; /* เพิ่มขนาดตัวหนังสืออีกนิดให้อ่านง่าย */
       font-weight: 600;
       color: #fff0f5;
-      margin: 15px 0; /* ระยะห่างระหว่างประโยค */
-      text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+      text-shadow: 0 2px 5px rgba(0,0,0,0.7);
+      
+      opacity: 0; /* ซ่อนไว้ก่อน */
+      transform: translateY(20px); /* ดันลงไปข้างล่างนิดหน่อย */
+      transition: all 1s ease-in-out; /* เอฟเฟกต์การค่อยๆ ปรากฏ */
     }
 
-    /* คีย์เฟรมสำหรับเลื่อนข้อความขึ้น */
-    @keyframes scrollUp {
-      0% { transform: translateY(100%); } /* เริ่มจากข้างล่างกล่อง */
-      100% { transform: translateY(-120%); } /* เลื่อนขึ้นไปจนพ้นกล่อง */
+    /* คลาสสำหรับประโยคที่กำลังแสดงผล */
+    .message p.active {
+      opacity: 1; /* แสดง */
+      transform: translateY(0); /* เลื่อนขึ้นมาตำแหน่งปกติ */
     }
 
     @keyframes glow { 
@@ -95,21 +84,18 @@
   <div class="content-overlay">
     <h1>I Love You</h1>
     
-    <div class="dedication-container">
-      <div class="scrolling-content">
-        <p>รักเธอนะจุ๊บๆ🩷🐰🐻</p>
-        <p>อยากกอดจังง</p>
-        <p>ตัวเล็กของเค้า</p>
-        <p>คิดถึงตลอดเวลาเลย</p>
-        <p>น่ารักที่สุดในโลกแล้ว</p>
-        <p>ยิ้มเยอะๆนะตัวเล็ก</p>
-        <p>มาอ้อนหน่อย</p>
-        <p>ง้ำๆ</p>
-        <p>รักๆๆๆ</p>
-        <p>กินเค้าาา</p>
-        <p>อยู่ในใจตลอด</p>
-        <p>รักเธอนะจุ๊บๆ🩷🐰🐻</p>
-      </div>
+    <div class="message-container message">
+      <p class="active">รักเธอนะจุ๊บๆ🩷🐰🐻</p>
+      <p>อยากกอดจังง</p>
+      <p>ตัวเล็กของเค้า</p>
+      <p>คิดถึงตลอดเวลาเลย</p>
+      <p>น่ารักที่สุดในโลกแล้ว</p>
+      <p>ยิ้มเยอะๆนะตัวเล็ก</p>
+      <p>มาอ้อนหน่อย</p>
+      <p>ง้ำๆ</p>
+      <p>รักๆๆๆ</p>
+      <p>กินเค้าาา</p>
+      <p>อยู่ในใจตลอด</p>
     </div>
   </div>
 
@@ -117,6 +103,28 @@
     import * as THREE from 'https://cdn.skypack.dev/three@0.135.0';
     import { GLTFLoader } from 'https://cdn.skypack.dev/three@0.135.0/examples/jsm/loaders/GLTFLoader';
 
+    // --- ส่วนเสริม: ฟังก์ชันควบคุมการเปลี่ยนข้อความ ---
+    function cycleMessages() {
+      const messages = document.querySelectorAll('.message p');
+      let currentIndex = 0;
+
+      setInterval(() => {
+        // 1. ซ่อนข้อความปัจจุบัน
+        messages[currentIndex].classList.remove('active');
+
+        // 2. ขยับไปอินเด็กซ์ถัดไป (ถ้าเกินให้วนกลับมา 0)
+        currentIndex = (currentIndex + 1) % messages.length;
+
+        // 3. แสดงข้อความถัดไป
+        messages[currentIndex].classList.add('active');
+      }, 3000); // เปลี่ยนข้อความทุกๆ 3 วินาที (ปรับเวลาตรงนี้ได้)
+    }
+    
+    // เรียกใช้ฟังก์ชันทันที
+    cycleMessages();
+
+
+    // --- ส่วน 3D Three.js (เหมือนเดิม) ---
     class ValentineWorld {
       constructor() {
         this.canvas = document.querySelector('.webgl');
@@ -142,7 +150,6 @@
         this.addPhotoRing();
         await this.loadMainHeart(); 
         this.animate();
-        
         window.addEventListener('resize', () => this.onResize());
       }
 
@@ -151,51 +158,29 @@
         const count = 4000;
         const pos = new Float32Array(count * 3);
         const velocities = new Float32Array(count);
-
-        for(let i=0; i<count*3; i++) {
-          pos[i] = (Math.random() - 0.5) * 25;
-        }
-        for(let i=0; i<count; i++) {
-          velocities[i] = Math.random() * 0.03 + 0.01;
-        }
-
+        for(let i=0; i<count*3; i++) pos[i] = (Math.random() - 0.5) * 25;
+        for(let i=0; i<count; i++) velocities[i] = Math.random() * 0.03 + 0.01;
         geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
         this.starVelocities = velocities;
         this.starGeo = geo;
-
-        const mat = new THREE.PointsMaterial({ 
-          size: 0.03, 
-          color: 0xffccff, 
-          transparent: true, 
-          opacity: 0.8,
-          blending: THREE.AdditiveBlending 
-        });
-        
+        const mat = new THREE.PointsMaterial({ size: 0.03, color: 0xffccff, transparent: true, opacity: 0.8, blending: THREE.AdditiveBlending });
         this.stars = new THREE.Points(geo, mat);
         this.scene.add(this.stars);
       }
 
       addPhotoRing() {
-        // รายชื่อรูปภาพ (Tong1 - Tong11)
-        const photos = [
-          'Tong1.jpg', 'Tong2.jpg', 'Tong3.jpg', 'Tong4.jpg', 
-          'Tong5.jpg', 'Tong6.jpg', 'Tong7.jpg', 'Tong8.jpg', 
-          'Tong9.jpg', 'Tong10.jpg', 'Tong11.jpg'
-        ];
-        
+        const photos = ['Tong1.jpg', 'Tong2.jpg', 'Tong3.jpg', 'Tong4.jpg', 'Tong5.jpg', 'Tong6.jpg', 'Tong7.jpg', 'Tong8.jpg', 'Tong9.jpg', 'Tong10.jpg', 'Tong11.jpg'];
         const radius = 3.2;
         photos.forEach((url, i) => {
           this.textureLoader.load(url, (tex) => {
             const mat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide });
             const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.9), mat);
-            
             const angle = (i / photos.length) * Math.PI * 2;
             mesh.position.set(Math.cos(angle) * radius, 0, Math.sin(angle) * radius);
             mesh.lookAt(0, 0, 0);
-            mesh.rotateY(Math.PI); // แก้รูปกลับด้าน
-            
+            mesh.rotateY(Math.PI); 
             this.photoGroup.add(mesh);
-          }, undefined, (err) => { console.error("Error loading:", url); });
+          });
         });
       }
 
@@ -203,31 +188,22 @@
         const loader = new GLTFLoader();
         loader.load('https://assets.codepen.io/74321/heart.glb', (gltf) => {
           this.heart = gltf.scene;
-          this.heart.scale.set(0.5, 0.5, 0.5); // ขนาดหัวใจ
-          this.heart.traverse(n => {
-            if(n.isMesh) n.material = new THREE.MeshBasicMaterial({ color: 0xff3366, wireframe: true });
-          });
+          this.heart.scale.set(0.5, 0.5, 0.5);
+          this.heart.traverse(n => { if(n.isMesh) n.material = new THREE.MeshBasicMaterial({ color: 0xff3366, wireframe: true }); });
           this.scene.add(this.heart);
         });
       }
 
       animate() {
         const elapsed = this.clock.getElapsedTime();
-        
-        // ขยับดาว
         const positions = this.starGeo.attributes.position.array;
         for(let i=0; i<this.starVelocities.length; i++) {
             positions[i*3 + 2] += this.starVelocities[i];
             if(positions[i*3 + 2] > 5) positions[i*3 + 2] = -15;
         }
         this.starGeo.attributes.position.needsUpdate = true;
-
         if(this.photoGroup) this.photoGroup.rotation.y = elapsed * 0.15;
-        if(this.heart) {
-          this.heart.rotation.y = elapsed * 0.5;
-          this.heart.scale.setScalar(0.5 + Math.sin(elapsed * 2) * 0.03);
-        }
-
+        if(this.heart) { this.heart.rotation.y = elapsed * 0.5; this.heart.scale.setScalar(0.5 + Math.sin(elapsed * 2) * 0.03); }
         this.renderer.render(this.scene, this.camera);
         requestAnimationFrame(() => this.animate());
       }
@@ -238,7 +214,6 @@
         this.renderer.setSize(window.innerWidth, window.innerHeight);
       }
     }
-
     new ValentineWorld();
   </script>
 </body>
