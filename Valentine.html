@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Valentine 2026 - Final Version</title>
+    <title>Valentine 2026 - Final Version (Updated Stars)</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Parisienne&family=Sarabun:wght@300;400;600;700&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -77,7 +77,7 @@
         </div>
         <div class="card" id="card2">
             <h1 style="color: #ff8fab; font-size: 1.8rem; margin-bottom: 10px;">Valentine 2026</h1>
-            <img src="627621846_3871409263167771_8747962275182716152_n.jpg" alt="Valentine" class="photo-frame">
+            <img src="Tong3.jpg" alt="Valentine" class="photo-frame">
             <p style="font-weight: bold; font-size: 0.9rem; color: #333; margin-top: 5px; line-height: 1.4;">
                 เค้ารักเธอน๊าาาอยู่กับเค้าไปนานๆ ขอบคุณที่อยู่ข้างกันตลอด<br>มีความสุขกับเค้าในทุกๆวันเลยนะ
             </p>
@@ -208,14 +208,14 @@
             }, 800);
         }
 
-        // --- 3D WORLD ---
+        // --- 3D WORLD (UPDATED STARS) ---
         class Final3D {
             constructor() {
                 this.scene = new THREE.Scene(); this.camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
                 this.renderer = new THREE.WebGLRenderer({canvas: document.querySelector('.webgl-canvas'), antialias:true, alpha:true});
                 this.renderer.setSize(window.innerWidth, window.innerHeight); this.camera.position.z = 5;
                 this.group = new THREE.Group(); this.scene.add(this.group);
-                this.addStars();
+                this.addStars(); // เรียกใช้ฟังก์ชันสร้างดาวแบบใหม่
                 const loader = new THREE.TextureLoader();
                 ['Tong1.jpg','Tong2.jpg','Tong3.jpg','Tong4.jpg','Tong5.jpg','Tong6.jpg','Tong7.jpg','Tong8.jpg','Tong9.jpg','Tong10.jpg','Tong11.jpg'].forEach((url,i)=>{
                     loader.load(url, t=>{
@@ -231,17 +231,45 @@
                 });
                 const animate = () => {
                     let t = Date.now()*0.001; this.group.rotation.y = t*0.15;
-                    this.starGeo.attributes.position.array.forEach((v,i) => { if(i%3===2) { this.starGeo.attributes.position.array[i]+=0.02; if(this.starGeo.attributes.position.array[i]>5) this.starGeo.attributes.position.array[i]=-15; } });
+                    // อัปเดตตำแหน่งดาวให้ตกช้าๆ ในแนวแกน Y
+                    this.starGeo.attributes.position.array.forEach((v,i) => { 
+                        if(i%3===1) { // แกน Y
+                            this.starGeo.attributes.position.array[i] -= 0.005; // ความเร็วในการตก (ยิ่งน้อยยิ่งช้า)
+                            if(this.starGeo.attributes.position.array[i] < -20) this.starGeo.attributes.position.array[i] = 20; // วนกลับไปข้างบน
+                        } 
+                    });
                     this.starGeo.attributes.position.needsUpdate = true;
                     if(this.heart) { this.heart.rotation.y = t*0.8; this.heart.scale.setScalar(0.5+Math.sin(t*3)*0.05); }
                     this.renderer.render(this.scene, this.camera); requestAnimationFrame(animate);
                 }; animate();
             }
+            
+            // ฟังก์ชันสร้างดาวแบบใหม่: เยอะขึ้น, มีสี, และโปร่งใส
             addStars() {
-                this.starGeo = new THREE.BufferGeometry(); const pos = [];
-                for(let i=0; i<3000; i++) pos.push((Math.random()-0.5)*30, (Math.random()-0.5)*30, (Math.random()-0.5)*30);
+                this.starGeo = new THREE.BufferGeometry();
+                const pos = [];
+                const colors = [];
+                const count = 7000; // เพิ่มจำนวนดาวเป็น 7000 ดวง
+                const colorPalette = [new THREE.Color(0xffffff), new THREE.Color(0xff69b4), new THREE.Color(0x87ceeb)]; // สี ขาว, ชมพู, ฟ้า
+
+                for(let i=0; i<count; i++) {
+                    pos.push((Math.random()-0.5)*40, (Math.random()-0.5)*40, (Math.random()-0.5)*40);
+                    const color = colorPalette[Math.floor(Math.random() * colorPalette.length)];
+                    colors.push(color.r, color.g, color.b);
+                }
+
                 this.starGeo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
-                this.scene.add(new THREE.Points(this.starGeo, new THREE.PointsMaterial({color:0xffffff, size:0.05})));
+                this.starGeo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+
+                const starMat = new THREE.PointsMaterial({
+                    size: 0.05,
+                    vertexColors: true, // ใช้สีที่กำหนดเอง
+                    transparent: true,
+                    opacity: 0.8,
+                    blending: THREE.AdditiveBlending
+                });
+
+                this.scene.add(new THREE.Points(this.starGeo, starMat));
             }
         }
 
