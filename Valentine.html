@@ -163,7 +163,7 @@
         window.proceedToLock = () => { document.getElementById('message-section').classList.remove('active'); document.getElementById('lock-section').classList.add('active'); start2DBackground(); };
         window.enter3DWorld = () => { document.getElementById('lock-section').classList.remove('active'); document.getElementById('webgl-section').classList.add('active'); new Final3D(); startFinalMessages(); };
 
-        // --- 2D BACKGROUND (LOCK SCREEN) - Updated Stars ---
+        // --- 2D BACKGROUND (LOCK SCREEN) - Updated ---
         const c2d = document.getElementById('canvas2d'), ctx2d = c2d.getContext('2d');
         let parts2d = [], stars2d = [], t2d = 0;
 
@@ -203,9 +203,11 @@
 
         function start2DBackground() {
             c2d.width = window.innerWidth; c2d.height = window.innerHeight;
-            for(let i=0; i<40; i++) stars2d.push(new Star2D()); // เพิ่มจำนวนดาวเป็น 40 ดวง
+            // เพิ่มจำนวนดาวเป็น 80 ดวง เพื่อให้ครอบคลุมทั้งจอรวมถึงฝั่งขวา
+            for(let i=0; i<80; i++) stars2d.push(new Star2D()); 
             const hF = (t,s=15) => ({ x: 16*Math.pow(Math.sin(t),3)*s, y: -(13*Math.cos(t)-5*Math.cos(2*t)-2*Math.cos(3*t)-Math.cos(4*t))*s });
-            for(let i=0; i<Math.PI*2; i+=0.02) { let p=hF(i); parts2d.push({bx:p.x, by:p.y, bz:(Math.random()-0.5)*30}); }
+            // ปรับ step เป็น 0.008 เพื่อให้จุดชมพูเยอะขึ้นมาก
+            for(let i=0; i<Math.PI*2; i+=0.008) { let p=hF(i); parts2d.push({bx:p.x, by:p.y, bz:(Math.random()-0.5)*30}); }
             function anim(){
                 ctx2d.fillStyle='rgba(5,2,5,0.2)'; ctx2d.fillRect(0,0,c2d.width,c2d.height); t2d+=0.015;
                 stars2d.forEach(s => { s.update(); s.draw(); });
